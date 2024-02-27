@@ -1,0 +1,23 @@
+{
+    "main": {
+      "english": "Main",
+      "latvian": "Galvenā"
+    },
+    "settings": {
+      "english": "Settings",
+      "latvian": "Iestatījumi"
+    },
+    "create_event": {
+      "english": "Create Event",
+      "latvian": "Izveidot Notikumu"
+    },
+    "light_theme": {
+      "english": "Light Theme",
+      "latvian": "Gaismas Tēma"
+    },
+    "event_date": {
+      "english": "Event Date",
+      "latvian": "Pasakumu Datums"
+    }
+}
+  
