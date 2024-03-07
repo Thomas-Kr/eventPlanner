@@ -1,10 +1,13 @@
 import sys
 import json
 
+from DB_manager import SchoolDB
+
 from PyQt5.QtCore import QDate
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, 
                              QVBoxLayout, QWidget, QTabWidget, QComboBox, 
-                             QCheckBox, QCalendarWidget, QLabel)
+                             QCheckBox, QCalendarWidget, QLabel, QDialog,
+                             QMessageBox, QLineEdit)
 
 def read_json(file_path: str):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -13,6 +16,42 @@ def read_json(file_path: str):
 def read_qss(file_path: str):
     with open(file_path, 'r') as file:
         return file.read()
+    
+school_db = SchoolDB()
+
+class SignInWindow(QDialog):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle('Sign In')
+
+        self.username_label = QLabel('Username:', self)
+        self.username_input = QLineEdit(self)
+        self.password_label = QLabel('Password:', self)
+        self.password_input = QLineEdit(self)
+        self.password_input.setEchoMode(QLineEdit.Password)
+
+        self.sign_in_button = QPushButton('Sign In', self)
+        self.sign_in_button.clicked.connect(self.authenticate)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.username_label)
+        layout.addWidget(self.username_input)
+        layout.addWidget(self.password_label)
+        layout.addWidget(self.password_input)
+        layout.addWidget(self.sign_in_button)
+
+        self.setLayout(layout)
+
+    def authenticate(self):
+        user_login = self.username_input.text()
+        user_password = self.password_input.text()
+        
+        if school_db.authenticate(user_login, user_password):
+            self.accept()
+        else:
+            QMessageBox.warning(self, 'Error', 'Invalid username or password')
+
 
 class EventPlanner(QMainWindow):
     def __init__(self):
@@ -103,7 +142,6 @@ class EventPlanner(QMainWindow):
 
     # Write the date that is currently selected on the calendar
     def show_selected_date(self, date: QDate):
-        print(type(date))
         self.selected_date = date.toString("yyyy-MM-dd")
         self.date_label.setText(f'{self.translations["event_date"][self.settings["language"]]}: {self.selected_date}')
 
@@ -137,7 +175,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
 
-    main_window = EventPlanner()
-    main_window.show()
-    
-    sys.exit(app.exec_())
+    sign_in_window = SignInWindow()
+    if sign_in_window.exec_() == QDialog.Accepted:
+        main_window = EventPlanner()
+        main_window.show()
+        sys.exit(app.exec_())

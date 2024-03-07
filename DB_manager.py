@@ -106,8 +106,34 @@ class SchoolDB:
 
         conn.commit()
         conn.close()
-    
+
+    def authenticate(self, user_login: str, input_password: str):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        query = f'''
+        SELECT userPassword 
+        FROM Users 
+        WHERE userLogin = '{user_login}';
+        '''
+
+        cursor.execute(query)
+
+        try:
+            password = cursor.fetchone()[0]
+        except TypeError:
+            return False
+
+        print(password)
+
+        conn.close()
+
+        if input_password == password:
+            return True 
         
-school_DB = SchoolDB()
-school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
-print(school_DB.select_all_from_table("RegisteredEvents"))
+        return False
+
+if __name__ == "__main__":
+    school_DB = SchoolDB()
+    school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
+    print(school_DB.select_all_from_table("RegisteredEvents"))
