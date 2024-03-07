@@ -7,10 +7,12 @@ TABLE Classes (
     classLetter CHAR(1)
 );
 
-TABLE ClassEvents (
+TABLE Events (
     eventID INT PRIMARY KEY IDENTITY,
     eventName VARCHAR(50),
     eventDate DATETIME
+    eventTypeID INT,
+    FOREIGN KEY (eventTypeID) REFERENCES EventTypes(eventTypeID) 
 );
 
 TABLE RegisteredEvents (
@@ -18,8 +20,14 @@ TABLE RegisteredEvents (
     classID INT,
     eventID INT,
     FOREIGN KEY (classID) REFERENCES Classes(classID),
-    FOREIGN KEY (eventID) REFERENCES ClassEvents(eventID)
+    FOREIGN KEY (eventID) REFERENCES Events(eventID)
 );
+
+TABLE EventTypes (
+    eventTypeID INT PRIMARY KEY IDENTITY,
+    eventTypeName VARCHAR(50),
+    isStudyEvent BIT
+)
 
 '''
 
@@ -55,7 +63,7 @@ class SchoolDB:
         return data
     
     # Basic version
-    def create_event(self, class_number, class_letter, event_name: str, event_date: str):
+    def create_event(self, class_number, class_letter, event_name: str, event_type_name: str, event_date: str):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
 
@@ -70,26 +78,36 @@ class SchoolDB:
         cursor.execute(query_1)
         class_id = cursor.fetchone()[0]
 
-        # Create event
+        # Find index of event type
         query_2 = f'''
-        INSERT INTO ClassEvents (eventName, eventDate) VALUES ('{event_name}', '{event_date}');
+        SELECT eventTypeID 
+        FROM EventTypes 
+        WHERE eventTypeName = '{event_type_name}';
         '''
 
         cursor.execute(query_2)
+        event_type_id = cursor.fetchone()[0]
+
+        # Create event
+        query_3 = f'''
+        INSERT INTO Events (eventName, eventDate, eventTypeID) VALUES ('{event_name}', '{event_date}', '{event_type_id}');
+        '''
+
+        cursor.execute(query_3)
         cursor.execute("SELECT SCOPE_IDENTITY()") # Get index of the created event
         event_id = cursor.fetchone()[0]
 
         # Add the event to the RegisteredEvents table
-        query_3 = f'''
+        query_4 = f'''
         INSERT INTO RegisteredEvents(classID, eventID) VALUES ({class_id}, {event_id});   
         '''
 
-        cursor.execute(query_3)
+        cursor.execute(query_4)
 
         conn.commit()
         conn.close()
     
         
 school_DB = SchoolDB()
-school_DB.create_event(10, 'a', 'Ekskursija', '2024-02-29 17:00:00')
+school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
 print(school_DB.select_all_from_table("RegisteredEvents"))
