@@ -3,11 +3,12 @@ import json
 
 from DB_manager import SchoolDB
 
-from PyQt5.QtCore import QDate
+from datetime import datetime
+from PyQt5.QtCore import QDate, QTime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, 
                              QVBoxLayout, QWidget, QTabWidget, QComboBox, 
                              QCheckBox, QCalendarWidget, QLabel, QDialog,
-                             QMessageBox, QLineEdit)
+                             QMessageBox, QLineEdit, QTimeEdit)
 
 def read_json(file_path: str):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -53,9 +54,9 @@ class SignInWindow(QDialog):
             QMessageBox.warning(self, 'Error', 'Invalid username or password')
 
 
-class EventPlanner(QMainWindow):
+class MainWindow(QMainWindow):
     def __init__(self):
-        super(EventPlanner, self).__init__()
+        super(MainWindow, self).__init__()
 
         self.settings = read_json('settings.json')
         self.translations = read_json('translations.json')
@@ -84,18 +85,58 @@ class EventPlanner(QMainWindow):
         self.apply_theme(self.settings['light_theme'] == True)
 
     def create_main_tab(self, main_tab: QWidget):
+        self.selected_class = f'{school_db.select_all_classes()[0][0]} {school_db.select_all_classes()[0][1]}'
+        self.selected_event_time = QTime(9, 0)
+        self.selected_date = datetime.now().strftime('%Y-%m-%d')
+        self.selected_event_type = school_db.select_all_event_types()[0][0]
+
         # Create a button in the Main tab
         self.create_event_button = QPushButton(self.translations['create_event'][self.settings['language']], main_tab)
         self.create_event_button.clicked.connect(self.create_event)
+
+        # Create text fields 
+        self.event_name_label = QLabel('Event name:', self)
+        self.event_name_input = QLineEdit(self)
+
+        # Create a dropdown list with all the classes in the school
+        self.classes_dropdown = QComboBox(main_tab)
+        classes = school_db.select_all_classes()
+
+        for cl in classes:
+            self.classes_dropdown.addItem(f'{cl[0]} {cl[1]}')
+
+        self.classes_dropdown.currentTextChanged.connect(self.select_class)
+
+        # Create a dropdown list with all the event types
+        self.event_types_dropdown = QComboBox(main_tab)
+        event_types = school_db.select_all_event_types()
+
+        for event_type in event_types:
+            self.event_types_dropdown.addItem(event_type[0])
+
+        self.event_types_dropdown.currentTextChanged.connect(self.select_event_type)
+
+        # Create time widget
+        self.event_time = QTimeEdit(self)
+        self.event_time.setDisplayFormat("HH:mm")
+
+        self.event_time.setTime(self.selected_event_time)
+
+        self.event_time.timeChanged.connect(self.handle_time_changed)
 
         # Create a label and calendar widget for date selection
         self.date_label = QLabel(self.translations['event_date'][self.settings['language']], main_tab)
         self.calendar_widget = QCalendarWidget(main_tab)
         self.calendar_widget.clicked[QDate].connect(self.show_selected_date)
 
-        # Set layout for the Main tab
+        # Set layout for the Main tab and add all the widgets
         layout = QVBoxLayout()
         layout.addWidget(self.create_event_button)
+        layout.addWidget(self.event_name_label)
+        layout.addWidget(self.event_name_input)
+        layout.addWidget(self.event_types_dropdown)
+        layout.addWidget(self.classes_dropdown)
+        layout.addWidget(self.event_time)
         layout.addWidget(self.date_label)
         layout.addWidget(self.calendar_widget)
         main_tab.setLayout(layout)
@@ -110,11 +151,12 @@ class EventPlanner(QMainWindow):
         initial_index = self.language_dropdown.findText(self.settings['language'])
         self.language_dropdown.setCurrentIndex(initial_index)
 
+        self.language_dropdown.currentTextChanged.connect(self.select_language)
+
         # Create a checkbox for the theme
         self.light_theme_checkbox = QCheckBox(self.translations['light_theme'][self.settings['language']], settings_tab)
         self.light_theme_checkbox.setChecked(self.settings.get('light_theme', False))
         self.light_theme_checkbox.stateChanged.connect(self.toggle_theme)
-        self.language_dropdown.currentTextChanged.connect(self.select_language)
 
         # Set layout for the Settings tab
         layout = QVBoxLayout()
@@ -136,9 +178,14 @@ class EventPlanner(QMainWindow):
 
     def create_event(self):
         try:
-            print(self.selected_date)
-        except AttributeError:
-            pass
+            if self.event_name_input.text() != '':
+                school_db.create_event(class_number=self.selected_class.split()[0], class_letter=self.selected_class.split()[1],
+                                       event_name=self.event_name_input.text(), event_type_name=self.selected_event_type, 
+                                       event_date=f'{self.selected_date} {f'{self.selected_event_time.hour()}:{self.selected_event_time.minute()}'}')
+                
+                QMessageBox.information(self, 'Event Created', 'Event was succesfully created!')
+        except Exception as err:
+            print(err)
 
     # Write the date that is currently selected on the calendar
     def show_selected_date(self, date: QDate):
@@ -152,6 +199,15 @@ class EventPlanner(QMainWindow):
             json.dump(self.settings, file, indent=4)
 
         self.update_language()
+
+    def handle_time_changed(self, selected_event_time):
+        self.selected_event_time = selected_event_time
+
+    def select_event_type(self, selected_event_type: str):
+        self.selected_event_type = selected_event_type
+
+    def select_class(self, selected_class: str):
+        self.selected_class = selected_class
         
     def apply_theme(self, is_white_theme: bool):
         if is_white_theme:
@@ -177,6 +233,6 @@ if __name__ == '__main__':
 
     sign_in_window = SignInWindow()
     if sign_in_window.exec_() == QDialog.Accepted:
-        main_window = EventPlanner()
+        main_window = MainWindow()
         main_window.show()
         sys.exit(app.exec_())

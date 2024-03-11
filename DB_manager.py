@@ -32,7 +32,6 @@ TABLE EventTypes (
 '''
 
 import pypyodbc as odbc
-import pandas as pd
 import json
 
 class SchoolDB:
@@ -63,7 +62,7 @@ class SchoolDB:
         return data
     
     # Basic version
-    def create_event(self, class_number, class_letter, event_name: str, event_type_name: str, event_date: str):
+    def create_event(self, class_number: int, class_letter: str, event_name: str, event_type_name: str, event_date: str):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
 
@@ -124,16 +123,49 @@ class SchoolDB:
         except TypeError:
             return False
 
-        print(password)
-
         conn.close()
 
         if input_password == password:
             return True 
         
         return False
+    
+    def select_all_classes(self):
+        query = f'''
+        SELECT classNumber, classLetter 
+        FROM Classes;
+        '''
+
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return sorted(data, key=lambda x: x[0])
+    
+    def select_all_event_types(self):
+        query = f'''
+        SELECT eventTypeName 
+        FROM EventTypes;
+        '''
+
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return data
 
 if __name__ == "__main__":
     school_DB = SchoolDB()
-    school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
-    print(school_DB.select_all_from_table("RegisteredEvents"))
+    #school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
+    #print(school_DB.select_all_from_table("RegisteredEvents"))
+
+    #print(school_DB.select_all_classes())
+    print(school_DB.select_all_event_types())
