@@ -29,10 +29,31 @@ TABLE EventTypes (
     isStudyEvent BIT
 )
 
+TABLE Roles (
+    roleID INT PRIMARY KEY IDENTITY,
+    roleName VARCHAR(20)
+)
+
+TABLE Users (
+    userID INT PRIMARY KEY IDENTITY,
+    userLogin VARCHAR(20),
+    userPassword VARCHAR(20),
+    roleID INT,
+    classID INT,
+    FOREIGN KEY (roleID) REFERENCES Roles(roleID),
+    FOREIGN KEY (classID) REFERENCES Classes(classID),
+)
+            
+self.role_id represents the role of the authenticated user:
+1 - School Worker
+2 - Class Teacher
+3 - School Administrator
+4 - Superuser
 '''
 
-import pypyodbc as odbc
 import json
+import pypyodbc as odbc
+from datetime import datetime
 
 class SchoolDB:
     def __init__(self):
@@ -45,16 +66,40 @@ class SchoolDB:
         with open('credentials.json', 'r', encoding='utf-8') as file:
             return json.load(file)
 
-    def select_all_from_table(self, table_name):
-        query = f'''
-        SELECT *
-        FROM {table_name}
-        '''
-
+    def select_all_events(self):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
+
+        data = []
+
+        query_1 = f'''
+        SELECT classID, eventID
+        FROM RegisteredEvents
+        '''
+
+        cursor.execute(query_1)
+        events_data = cursor.fetchall()
+
+        for event in events_data:
+            query_2 = f'''
+            SELECT classNumber, classLetter
+            FROM Classes
+            WHERE classID = {event[0]}
+            '''
+
+            cursor.execute(query_2)
+            class_data = cursor.fetchall()
+
+            query_3 = f'''
+            SELECT eventName, eventDate
+            FROM Events
+            WHERE eventID = {event[1]}
+            '''
+
+            cursor.execute(query_3)
+            event_data = cursor.fetchall()
+
+            data.append([str(class_data[0][0]), class_data[0][1], event_data[0][0], event_data[0][1].strftime("%Y-%m-%d %H:%M")])
 
         conn.commit()
         conn.close()
@@ -111,7 +156,7 @@ class SchoolDB:
         cursor = conn.cursor()
 
         query = f'''
-        SELECT userPassword 
+        SELECT userPassword, roleID 
         FROM Users 
         WHERE userLogin = '{user_login}';
         '''
@@ -119,11 +164,11 @@ class SchoolDB:
         cursor.execute(query)
 
         try:
-            password = cursor.fetchone()[0]
+            password, self.role_id = cursor.fetchone()
         except TypeError:
             return False
-
-        conn.close()
+        finally:
+            conn.close()
 
         if input_password == password:
             return True 
@@ -148,10 +193,26 @@ class SchoolDB:
     
     def select_all_event_types(self):
         query = f'''
-        SELECT eventTypeName 
+        SELECT eventTypeID, eventTypeName 
         FROM EventTypes;
         '''
 
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+        conn.commit()
+        conn.close()
+
+        return data
+    
+    def select_events_by_type(self, event_type):
+        query = f'''
+        SELECT eventName, eventDate
+        FROM Events
+        WHERE eventTypeID = '{event_type}'
+        '''
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
         cursor.execute(query)
@@ -168,4 +229,5 @@ if __name__ == "__main__":
     #print(school_DB.select_all_from_table("RegisteredEvents"))
 
     #print(school_DB.select_all_classes())
-    print(school_DB.select_all_event_types())
+    #print(school_DB.select_all_event_types())
+    print(school_DB.select_all_events())

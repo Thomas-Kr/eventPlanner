@@ -1,14 +1,15 @@
 import sys
 import json
 
-from DB_manager import SchoolDB
-
 from datetime import datetime
 from PyQt5.QtCore import QDate, QTime
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, 
                              QVBoxLayout, QWidget, QTabWidget, QComboBox, 
                              QCheckBox, QCalendarWidget, QLabel, QDialog,
-                             QMessageBox, QLineEdit, QTimeEdit)
+                             QMessageBox, QLineEdit, QTimeEdit, QTableWidget,
+                             QTableWidgetItem)
+
+from DB_manager import SchoolDB
 
 def read_json(file_path: str):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -47,7 +48,7 @@ class SignInWindow(QDialog):
     def authenticate(self):
         user_login = self.username_input.text()
         user_password = self.password_input.text()
-        
+
         if school_db.authenticate(user_login, user_password):
             self.accept()
         else:
@@ -68,18 +69,21 @@ class MainWindow(QMainWindow):
 
         main_tab = QWidget()
         settings_tab = QWidget()
+        event_list_tab = QWidget()
 
         # Add 'main' and 'settings' tabs
         self.create_main_tab(main_tab)
         self.create_settings_tab(settings_tab)
+        self.create_event_list_tab(event_list_tab)
 
         self.tab_widget.addTab(main_tab, self.translations['main'][self.settings['language']])
+        self.tab_widget.addTab(event_list_tab, "Events")
         self.tab_widget.addTab(settings_tab, self.translations['settings'][self.settings['language']])
 
         self.setCentralWidget(self.tab_widget)
 
         # Window's settings
-        self.setGeometry(100, 100, 400, 300)
+        self.setGeometry(100, 100, 600, 600)
         self.setWindowTitle('Event Planner')
         
         self.apply_theme(self.settings['light_theme'] == True)
@@ -88,7 +92,7 @@ class MainWindow(QMainWindow):
         self.selected_class = f'{school_db.select_all_classes()[0][0]} {school_db.select_all_classes()[0][1]}'
         self.selected_event_time = QTime(9, 0)
         self.selected_date = datetime.now().strftime('%Y-%m-%d')
-        self.selected_event_type = school_db.select_all_event_types()[0][0]
+        self.selected_event_type = school_db.select_all_event_types()[0][1]
 
         # Create a button in the Main tab
         self.create_event_button = QPushButton(self.translations['create_event'][self.settings['language']], main_tab)
@@ -112,7 +116,7 @@ class MainWindow(QMainWindow):
         event_types = school_db.select_all_event_types()
 
         for event_type in event_types:
-            self.event_types_dropdown.addItem(event_type[0])
+            self.event_types_dropdown.addItem(event_type[1])
 
         self.event_types_dropdown.currentTextChanged.connect(self.select_event_type)
 
@@ -140,6 +144,34 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.date_label)
         layout.addWidget(self.calendar_widget)
         main_tab.setLayout(layout)
+
+    def create_event_list_tab(self, event_list_tab: QWidget):
+        self.table = QTableWidget(event_list_tab) 
+
+        self.events = school_db.select_all_events()
+        print(self.events)
+        self.table.setColumnCount(4)  
+        self.table.setRowCount(len(self.events))
+
+        self.update_table()
+
+        # Create button for table updating
+        self.update_button = QPushButton("Update Table", event_list_tab)
+        self.update_button.clicked.connect(self.update_table) # does not work propeprly for now
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.table)
+        layout.addWidget(self.update_button)
+        event_list_tab.setLayout(layout)
+
+    def update_table(self):
+        # Add data to the table
+        for row_index, row_data in enumerate(self.events):
+            for col_index, cell_data in enumerate(row_data):
+                item = QTableWidgetItem(cell_data)
+                self.table.setItem(row_index, col_index, item)
+
+        self.table.resizeColumnsToContents()
 
     def create_settings_tab(self, settings_tab: QWidget):
         # Create a dropdown menu in the Settings tab
