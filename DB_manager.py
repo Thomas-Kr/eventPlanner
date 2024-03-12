@@ -52,15 +52,24 @@ self.role_id represents the role of the authenticated user:
 '''
 
 import json
+
 import pypyodbc as odbc
-from datetime import datetime
+
+from os import system
 
 class SchoolDB:
     def __init__(self):
+        self.check_driver_installed()
         self.credentials = self.read_DB_credentials()
         self.conn_string = f'''Driver={self.credentials['driver']};Server=tcp:{self.credentials['server']},1433;
                                      Database={self.credentials['database']};Uid={self.credentials['login']};Pwd={self.credentials['password']};
                                      Encrypt=yes;TrustServerCertificate=no;conn Timeout=30;'''
+        
+    def check_driver_installed(self):
+        drivers = [x for x in odbc.drivers()]
+
+        if 'ODBC Driver 18 for SQL Server' not in drivers:
+            system('msiexec /i "msodbcsql.msi"')
 
     def read_DB_credentials(self):
         with open('credentials.json', 'r', encoding='utf-8') as file:

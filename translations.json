@@ -16,8 +16,72 @@
       "latvian": "Gaismas Tēma"
     },
     "event_date": {
-      "english": "Event Date",
-      "latvian": "Pasakumu Datums"
-    }
+      "english": "Event Date:",
+      "latvian": "Pasakumu Datums:"
+    },
+    "sign_in": {
+      "english": "Sing In",
+      "latvian": "Ielogoties"
+    },
+    "username": {
+      "english": "Username",
+      "latvian": "Lietotājvārds"
+    },
+    "password": {
+      "english": "Password",
+      "latvian": "Lietotājvārds"
+    },
+    "error": {
+      "english": "Error",
+      "latvian": "Kļūda"
+    },
+    "invalid_usrn_or_psw": {
+      "english": "Invalid username or password",
+      "latvian": "Nederīgs lietotājvārds vai parole"
+    },
+    "events": {
+      "english": "Events",
+      "latvian": "Pasākumi"
+    },
+    "event_planner": {
+      "english": "Event Planner",
+      "latvian": "Pasākumu plānotājs"
+    },
+    "event_name": {
+      "english": "Write event name:",
+      "latvian": "Uzrakstiet pasākuma nosaukumu:"
+    },
+    "class": {
+      "english": "Class",
+      "latvian": "Klase"
+    },
+    "letter": {
+      "english": "Letter",
+      "latvian": "Burts"
+    },
+    "update_table": {
+      "english": "Update Table",
+      "latvian": "Atjaunināt tabulu"
+    },
+    "event_created": {
+      "english": "Event Created",
+      "latvian": "Pasākums izveidots"
+    },
+    "event_created_successfully": {
+      "english": "Event was successfully created!",
+      "latvian": "Pasākums veiksmīgi izveidots!"
+    },
+    "class_label": {
+      "english": "Choose class:",
+      "latvian": "Izvēlieties klasi:"
+    },
+    "event_type_label": {
+      "english": "Choose event type:",
+      "latvian": "Izvēlieties pasākuma veidu:"
+    },
+    "event_time_label": {
+      "english": "Choose event time:",
+      "latvian": "Izvēlieties pasākuma laiku:"
+    }  
 }
   
