@@ -36,5 +36,16 @@ In order to change settings, you need to go to the "Settings" tab. There you can
 - Change language by selecting it in the dropdown list.
 - Change theme of the application to dark or light.
 
+## Details and issues
+- If you want to access the database, you can find all the data you need in the credentials.json file.
+- The database is opened for all ipv4 adresses.
+- When you try to run the program after the database was inactive for long time, it may throw an error. You need to:
+1. Run event_planner.py and try to sign in.
+2. If it throws an error, wait for 30 seconds and retry.
+
+
+
+
+
 
 
