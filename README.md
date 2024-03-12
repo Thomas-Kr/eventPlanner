@@ -13,7 +13,7 @@ pip install pypyodbc
 4. Open terminal and go to the project's directory.
 5. Run the following command:
 ```bash
-python event_planner.py'
+python event_planner.py
 ```
 
 ## Usage.
