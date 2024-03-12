@@ -165,9 +165,9 @@ class MainWindow(QMainWindow):
     def create_event_list_tab(self, event_list_tab: QWidget):
         self.table = QTableWidget(event_list_tab) 
 
-        self.table.setColumnCount(4)  
-        self.table.setHorizontalHeaderLabels([translations['class'][settings['language']], translations['letter'][settings['language']], 
-                                              translations['event_name'][settings['language']], translations['event_date'][settings['language']]])
+        self.table.setColumnCount(3)  
+        self.table.setHorizontalHeaderLabels([translations['class'][settings['language']], translations['event_name'][settings['language']], 
+                                              translations['event_date'][settings['language']]])
         self.update_table()
 
         # Create button for table updating
@@ -186,6 +186,10 @@ class MainWindow(QMainWindow):
         # Add data to the table
         for row_index, row_data in enumerate(self.events):
             for col_index, cell_data in enumerate(row_data):
+                # If its an array of classes
+                if isinstance(cell_data, list):
+                    cell_data = ', '.join(cell_data)
+
                 item = QTableWidgetItem(cell_data)
                 item.setTextAlignment(Qt.AlignCenter)
                 self.table.setItem(row_index, col_index, item)

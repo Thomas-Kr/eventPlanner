@@ -90,6 +90,7 @@ class SchoolDB:
         events_data = cursor.fetchall()
 
         for event in events_data:
+            # Select class data by its ID
             query_2 = f'''
             SELECT classNumber, classLetter
             FROM Classes
@@ -99,6 +100,7 @@ class SchoolDB:
             cursor.execute(query_2)
             class_data = cursor.fetchall()
 
+            # Select event data by its ID
             query_3 = f'''
             SELECT eventName, eventDate
             FROM Events
@@ -108,12 +110,23 @@ class SchoolDB:
             cursor.execute(query_3)
             event_data = cursor.fetchall()
 
-            data.append([str(class_data[0][0]), class_data[0][1], event_data[0][0], event_data[0][1].strftime("%Y-%m-%d %H:%M")])
+            data.append([str(class_data[0][0]) + class_data[0][1], event_data[0][0], event_data[0][1].strftime("%Y-%m-%d %H:%M")])
 
         conn.commit()
         conn.close()
 
-        return data
+        grouped_data = {}
+
+        for subarray in data:
+            key = tuple(subarray[1:])
+            if key in grouped_data:
+                grouped_data[key].append(subarray[0])
+            else:
+                grouped_data[key] = [subarray[0]]
+
+        print(grouped_data)
+
+        return [[[', '.join(subarrays)], *key] for key, subarrays in grouped_data.items()]
     
     # Basic version
     def create_event(self, class_number: int, class_letter: str, event_name: str, event_type_name: str, event_date: str):
@@ -141,21 +154,34 @@ class SchoolDB:
         cursor.execute(query_2)
         event_type_id = cursor.fetchone()[0]
 
-        # Create event
         query_3 = f'''
-        INSERT INTO Events (eventName, eventDate, eventTypeID) VALUES ('{event_name}', '{event_date}', '{event_type_id}');
+        SELECT eventID 
+        FROM Events 
+        WHERE eventName = '{event_name}' AND eventDate = '{event_date}' AND eventTypeID = '{event_type_id}'
         '''
 
         cursor.execute(query_3)
-        cursor.execute("SELECT SCOPE_IDENTITY()") # Get index of the created event
-        event_id = cursor.fetchone()[0]
+        event = cursor.fetchone()
 
+        if not event:
+            # If event does not exist - create it
+            query_4 = f'''
+            INSERT INTO Events (eventName, eventDate, eventTypeID) VALUES ('{event_name}', '{event_date}', '{event_type_id}');
+            '''
+
+            cursor.execute(query_4)
+            cursor.execute("SELECT SCOPE_IDENTITY()") # Get index of the created event
+            event_id = cursor.fetchone()[0]
+        else:
+            # If event already exists - save its ID
+            event_id = event[0]
+        
         # Add the event to the RegisteredEvents table
-        query_4 = f'''
+        query_5 = f'''
         INSERT INTO RegisteredEvents(classID, eventID) VALUES ({class_id}, {event_id});   
         '''
 
-        cursor.execute(query_4)
+        cursor.execute(query_5)
 
         conn.commit()
         conn.close()
