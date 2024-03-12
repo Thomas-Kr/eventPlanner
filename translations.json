@@ -55,10 +55,6 @@
       "english": "Class",
       "latvian": "Klase"
     },
-    "letter": {
-      "english": "Letter",
-      "latvian": "Burts"
-    },
     "update_table": {
       "english": "Update Table",
       "latvian": "Atjaunināt tabulu"
@@ -82,6 +78,18 @@
     "event_time_label": {
       "english": "Choose event time:",
       "latvian": "Izvēlieties pasākuma laiku:"
-    }  
+    },
+    "add_class": {
+      "english": "Add Class",
+      "latvian": "Pievienot klasi"
+    },
+    "event_type": {
+      "english": "Event type",
+      "latvian": "Pasākuma veids"
+    },
+    "event_not_selected": {
+      "english": "Event was not selected",
+      "latvian": "Pasākums netika atlasīts"
+    }     
 }
   

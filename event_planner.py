@@ -100,8 +100,8 @@ class MainWindow(QMainWindow):
         self.create_event_button.clicked.connect(self.create_event)
 
         # Create label
-        self.event_name_label = QLabel(translations['event_name'][settings['language']], self)
-        self.event_name_input = QLineEdit(self)
+        self.event_name_label = QLabel(translations['event_name'][settings['language']], main_tab)
+        self.event_name_input = QLineEdit(main_tab)
 
         # Create a label and dropdown list with all the classes in the school
         self.classes_dropdown_label = QLabel(translations['class_label'][settings['language']], main_tab)
@@ -165,17 +165,36 @@ class MainWindow(QMainWindow):
     def create_event_list_tab(self, event_list_tab: QWidget):
         self.table = QTableWidget(event_list_tab) 
 
-        self.table.setColumnCount(3)  
+        self.table.setColumnCount(4)  
         self.table.setHorizontalHeaderLabels([translations['class'][settings['language']], translations['event_name'][settings['language']], 
-                                              translations['event_date'][settings['language']]])
+                                              translations['event_date'][settings['language']], translations['event_type'][settings['language']]])
+        self.table.itemClicked.connect(self.on_table_item_clicked)
+        self.row_data = []
+
         self.update_table()
 
-        # Create button for table updating
+        self.classes_dropdown_label_2 = QLabel(translations['class_label'][settings['language']], event_list_tab)
+        self.classes_dropdown_2 = QComboBox(event_list_tab)
+        classes = school_db.select_all_classes()
+        
+        for cl in classes:
+            self.classes_dropdown_2.addItem(f'{cl[0]} {cl[1]}')
+
+        self.classes_dropdown_2.currentTextChanged.connect(self.select_class_2)
+
+        # Create a button for adding a class to some event
+        self.add_class_button = QPushButton(translations['add_class'][settings['language']], event_list_tab)
+        self.add_class_button.clicked.connect(self.add_class)
+
+        # Create a button for table updating
         self.update_button = QPushButton(translations['update_table'][settings['language']], event_list_tab)
         self.update_button.clicked.connect(self.update_table) 
 
         layout = QVBoxLayout()
         layout.addWidget(self.table)
+        layout.addWidget(self.classes_dropdown_label_2)
+        layout.addWidget(self.classes_dropdown_2)
+        layout.addWidget(self.add_class_button)
         layout.addWidget(self.update_button)
         event_list_tab.setLayout(layout)
 
@@ -195,6 +214,29 @@ class MainWindow(QMainWindow):
                 self.table.setItem(row_index, col_index, item)
 
         self.table.resizeColumnsToContents()
+
+    def on_table_item_clicked(self, item):
+        row = item.row()
+        for column in range(self.table.columnCount()):
+            cell_data = self.table.item(row, column).text()
+            self.row_data.append(cell_data)
+
+    def select_class_2(self, item):
+        self.selected_class_2 = item
+
+    def add_class(self):
+        if self.row_data:
+            if len(self.selected_class_2) == 4:
+                class_number = self.selected_class_2[:2]
+                class_letter = self.selected_class_2[3]
+            else:
+                class_number = self.selected_class_2[0]
+                class_letter = self.selected_class_2[2]
+            
+            school_db.create_event(class_number, class_letter, event_name=self.row_data[1], event_date=self.row_data[2], event_type_name=self.row_data[3])
+            self.update_table()
+        else:
+            QMessageBox.warning(self, translations['error'][settings['language']], translations['event_not_selected'][settings['language']])
 
     def create_settings_tab(self, settings_tab: QWidget):
         # Create a dropdown menu in the Settings tab
