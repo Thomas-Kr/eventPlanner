@@ -28,7 +28,7 @@ On the "Main" tab you can create a new event. In order to do it:
 5. Chosee event date.
 6. Click on the "Create Event" button.
 
-On the "Events tab you can:
+On the "Events" tab you can:
 - See all the events in the table.
 - Update the table by clicking on the "Update Table" button.
 
