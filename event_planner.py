@@ -2,7 +2,7 @@ import sys
 import json
 
 from datetime import datetime
-from PyQt5.QtCore import QDate, QTime, Qt
+from PyQt5.QtCore import QDate, QTime, Qt, QLocale
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, 
                              QVBoxLayout, QWidget, QTabWidget, QComboBox, 
                              QCheckBox, QCalendarWidget, QLabel, QDialog,
@@ -99,11 +99,11 @@ class MainWindow(QMainWindow):
         self.create_event_button = QPushButton(translations['create_event'][settings['language']], main_tab)
         self.create_event_button.clicked.connect(self.create_event)
 
-        # Create text fields 
+        # Create label
         self.event_name_label = QLabel(translations['event_name'][settings['language']], self)
         self.event_name_input = QLineEdit(self)
 
-        # Create a dropdown list with all the classes in the school
+        # Create a label and dropdown list with all the classes in the school
         self.classes_dropdown_label = QLabel(translations['class_label'][settings['language']], main_tab)
         self.classes_dropdown = QComboBox(main_tab)
         classes = school_db.select_all_classes()
@@ -113,7 +113,7 @@ class MainWindow(QMainWindow):
 
         self.classes_dropdown.currentTextChanged.connect(self.select_class)
 
-        # Create a dropdown list with all the event types
+        # Create a label and dropdown list with all the event types
         self.event_type_label = QLabel(translations['event_type_label'][settings['language']], self)
         self.event_types_dropdown = QComboBox(main_tab)
         event_types = school_db.select_all_event_types()
@@ -123,7 +123,7 @@ class MainWindow(QMainWindow):
 
         self.event_types_dropdown.currentTextChanged.connect(self.select_event_type)
 
-        # Create time widget
+        # Create a label and time widget
         self.event_time_label = QLabel(translations['event_time_label'][settings['language']], self)
         self.event_time = QTimeEdit(self)
         self.event_time.setDisplayFormat("HH:mm")
@@ -136,6 +136,11 @@ class MainWindow(QMainWindow):
         self.date_label = QLabel(translations['event_date'][settings['language']], main_tab)
         self.calendar_widget = QCalendarWidget(main_tab)
         self.calendar_widget.clicked[QDate].connect(self.show_selected_date)
+
+        if settings['language'] == "latvian":
+            self.calendar_widget.setLocale(QLocale(QLocale.Latvian))
+        else:
+            self.calendar_widget.setLocale(QLocale(QLocale.English))
 
         # Set layout for the Main tab and add all the widgets
         layout = QVBoxLayout()
@@ -218,6 +223,11 @@ class MainWindow(QMainWindow):
         self.classes_dropdown_label.setText(translations['class_label'][settings['language']])
         self.event_type_label.setText(translations['event_type_label'][settings['language']])
         self.event_time_label.setText(translations['event_time_label'][settings['language']])
+
+        if settings['language'] == "latvian":
+            self.calendar_widget.setLocale(QLocale(QLocale.Latvian))
+        else:
+            self.calendar_widget.setLocale(QLocale(QLocale.English))
 
         # Update language in the events tab
         self.table.setHorizontalHeaderLabels([translations['class'][settings['language']], translations['letter'][settings['language']], 
