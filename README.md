@@ -20,16 +20,17 @@ python event_planner.py'
 1. When the program starts, you will be prompted to install an ODBC driver if you do not have one. Install the driver following the instructions in the window that opens.
 2. In the opened “Sign In” window, you need to enter your username and password. When the data is entered, press Enter.
 
-In order to create a new event, you need to: 
-1. Open the "Main" tab.
-2. Write event name.
-3. Choose event type.
-4. Choose class that will attend the event.
-5. Choose event time.
-6. Chosee event date.
-7. Click on the "Create Event" button.
+On the "Main" tab you can create a new event. In order to do it: 
+1. Write event name.
+2. Choose event type.
+3. Choose class that will attend the event.
+4. Choose event time.
+5. Chosee event date.
+6. Click on the "Create Event" button.
 
-In order to see all the events, you need to open the "Events" tab. Moreover, you can update the table if you click on the "Update Table" button.
+On the "Events tab you can:
+- See all the events in the table.
+- Update the table by clicking on the "Update Table" button.
 
 In order to change settings, you need to go to the "Settings" tab. There you can: 
 - Change language by selecting it in the dropdown list.
