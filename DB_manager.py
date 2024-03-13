@@ -52,10 +52,14 @@ self.role_id represents the role of the authenticated user:
 '''
 
 import json
+import logging
 
 import pypyodbc as odbc
 
 from os import system
+
+# Configure logging
+logging.basicConfig(filename='errors.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class SchoolDB:
     def __init__(self):
@@ -69,11 +73,17 @@ class SchoolDB:
         drivers = [x for x in odbc.drivers()]
 
         if 'ODBC Driver 18 for SQL Server' not in drivers:
-            system('msiexec /i "msodbcsql.msi"')
+            try:
+                system('msiexec /i "msodbcsql.msi"')
+            except Exception as err:
+                logging.error(f'Error downloading ODBC driver: {err}')
 
     def read_DB_credentials(self):
-        with open('credentials.json', 'r', encoding='utf-8') as file:
-            return json.load(file)
+        try:
+            with open('credentials.json', 'r', encoding='utf-8') as file:
+                return json.load(file)
+        except Exception as err:
+            logging.error(f'Error reading credentials.json: {err}')
 
     def select_all_events(self):
         conn = odbc.connect(self.conn_string)
@@ -86,8 +96,13 @@ class SchoolDB:
         FROM RegisteredEvents
         '''
 
-        cursor.execute(query_1)
-        events_data = cursor.fetchall()
+        try:
+            cursor.execute(query_1)
+            events_data = cursor.fetchall()
+        except Exception as err:
+            logging.error(f'Error executing query_1 in select_all_events(): {err}')
+            conn.close()
+            return -1
 
         for event in events_data:
             # Select class data by its ID
@@ -97,8 +112,13 @@ class SchoolDB:
             WHERE classID = {event[0]}
             '''
 
-            cursor.execute(query_2)
-            class_data = cursor.fetchall()
+            try:
+                cursor.execute(query_2)
+                class_data = cursor.fetchall()
+            except Exception as err:
+                logging.error(f'Error executing query_2 in select_all_events(): {err}')
+                conn.close()
+                return -1
 
             # Select event data by its ID
             query_3 = f'''
@@ -107,8 +127,13 @@ class SchoolDB:
             WHERE eventID = {event[1]}
             '''
 
-            cursor.execute(query_3)
-            event_data = cursor.fetchall()
+            try:
+                cursor.execute(query_3)
+                event_data = cursor.fetchall()
+            except Exception as err:
+                logging.error(f'Error executing query_3 in select_all_events(): {err}')
+                conn.close()
+                return -1
 
             query_4 = f'''
             SELECT eventTypeName
@@ -116,8 +141,13 @@ class SchoolDB:
             WHERE eventTypeID = {event_data[0][2]}
             '''
 
-            cursor.execute(query_4)
-            event_name = cursor.fetchall()
+            try:
+                cursor.execute(query_4)
+                event_name = cursor.fetchall()
+            except Exception as err:
+                logging.error(f'Error executing query_4 in select_all_events(): {err}')
+                conn.close()
+                return -1
 
             data.append([str(class_data[0][0]) + class_data[0][1], event_data[0][0], event_data[0][1].strftime("%Y-%m-%d %H:%M"), event_name[0][0]])
 
@@ -148,8 +178,14 @@ class SchoolDB:
         AND classLetter = '{class_letter}';
         '''
         
-        cursor.execute(query_1)
-        class_id = cursor.fetchone()[0]
+        try:
+            cursor.execute(query_1)
+            class_id = cursor.fetchone()[0]
+        except Exception as err:
+                logging.error(f'Error executing query_1 in create_event(): {err}')
+                conn.close()
+                return -1
+            
 
         # Find index of event type
         query_2 = f'''
@@ -158,8 +194,13 @@ class SchoolDB:
         WHERE eventTypeName = '{event_type_name}';
         '''
 
-        cursor.execute(query_2)
-        event_type_id = cursor.fetchone()[0]
+        try:
+            cursor.execute(query_2)
+            event_type_id = cursor.fetchone()[0]
+        except Exception as err:
+                logging.error(f'Error executing query_2 in create_event(): {err}')
+                conn.close()
+                return -1
 
         query_3 = f'''
         SELECT eventID 
@@ -167,8 +208,13 @@ class SchoolDB:
         WHERE eventName = '{event_name}' AND eventDate = '{event_date}' AND eventTypeID = '{event_type_id}'
         '''
 
-        cursor.execute(query_3)
-        event = cursor.fetchone()
+        try:
+            cursor.execute(query_3)
+            event = cursor.fetchone()
+        except Exception as err:
+                logging.error(f'Error executing query_3 in create_event(): {err}')
+                conn.close()
+                return -1
 
         if not event:
             # If event does not exist - create it
@@ -176,9 +222,14 @@ class SchoolDB:
             INSERT INTO Events (eventName, eventDate, eventTypeID) VALUES ('{event_name}', '{event_date}', '{event_type_id}');
             '''
 
-            cursor.execute(query_4)
-            cursor.execute("SELECT SCOPE_IDENTITY()") # Get index of the created event
-            event_id = cursor.fetchone()[0]
+            try:
+                cursor.execute(query_4)
+                cursor.execute("SELECT SCOPE_IDENTITY()") # Get index of the created event
+                event_id = cursor.fetchone()[0]
+            except Exception as err:
+                logging.error(f'Error executing query_4 in create_event(): {err}')
+                conn.close()
+                return -1
         else:
             # If event already exists - save its ID
             event_id = event[0]
@@ -188,10 +239,14 @@ class SchoolDB:
         INSERT INTO RegisteredEvents(classID, eventID) VALUES ({class_id}, {event_id});   
         '''
 
-        cursor.execute(query_5)
-
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute(query_5)
+        except Exception as err:
+            logging.error(f'Error executing query_5 in create_event(): {err}')
+            return -1
+        finally:
+            conn.commit()
+            conn.close()
 
     def authenticate(self, user_login: str, input_password: str):
         conn = odbc.connect(self.conn_string)
@@ -203,7 +258,12 @@ class SchoolDB:
         WHERE userLogin = '{user_login}';
         '''
 
-        cursor.execute(query)
+        try:
+            cursor.execute(query)
+        except Exception as err:
+                logging.error(f'Error executing query in authenticate(): {err}')
+                conn.close()
+                return -1
 
         try:
             password, self.role_id = cursor.fetchone()
@@ -225,11 +285,15 @@ class SchoolDB:
 
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
 
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute(query)
+            data = cursor.fetchall()
+        except Exception as err:
+                logging.error(f'Error executing query in select_all_classes(): {err}')
+                return
+        finally:   
+            conn.close()
 
         return sorted(data, key=lambda x: x[0])
     
@@ -241,11 +305,15 @@ class SchoolDB:
 
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
 
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute(query)
+            data = cursor.fetchall()
+        except Exception as err:
+                logging.error(f'Error executing query in select_all_event_types(): {err}')
+                return
+        finally:   
+            conn.close()
 
         return data
     
@@ -257,11 +325,15 @@ class SchoolDB:
         '''
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
-        cursor.execute(query)
-        data = cursor.fetchall()
 
-        conn.commit()
-        conn.close()
+        try:
+            cursor.execute(query)
+            data = cursor.fetchall()
+        except Exception as err:
+                logging.error(f'Error executing query in select_events_by_type(): {err}')
+                return
+        finally:
+            conn.close()
 
         return data
 

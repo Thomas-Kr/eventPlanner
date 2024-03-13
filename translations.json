@@ -16,8 +16,8 @@
       "latvian": "Gaismas Tēma"
     },
     "event_date": {
-      "english": "Event Date:",
-      "latvian": "Pasakumu Datums:"
+      "english": "Event Date",
+      "latvian": "Pasakumu Datums"
     },
     "sign_in": {
       "english": "Sing In",
@@ -48,8 +48,8 @@
       "latvian": "Pasākumu plānotājs"
     },
     "event_name": {
-      "english": "Write event name:",
-      "latvian": "Uzrakstiet pasākuma nosaukumu:"
+      "english": "Write event name",
+      "latvian": "Uzrakstiet pasākuma nosaukumu"
     },
     "class": {
       "english": "Class",
@@ -68,16 +68,16 @@
       "latvian": "Pasākums veiksmīgi izveidots!"
     },
     "class_label": {
-      "english": "Choose class:",
-      "latvian": "Izvēlieties klasi:"
+      "english": "Choose class",
+      "latvian": "Izvēlieties klasi"
     },
     "event_type_label": {
-      "english": "Choose event type:",
-      "latvian": "Izvēlieties pasākuma veidu:"
+      "english": "Choose event type",
+      "latvian": "Izvēlieties pasākuma veidu"
     },
     "event_time_label": {
-      "english": "Choose event time:",
-      "latvian": "Izvēlieties pasākuma laiku:"
+      "english": "Choose event time",
+      "latvian": "Izvēlieties pasākuma laiku"
     },
     "add_class": {
       "english": "Add Class",
@@ -90,6 +90,26 @@
     "event_not_selected": {
       "english": "Event was not selected",
       "latvian": "Pasākums netika atlasīts"
-    }     
+    },
+    "text_len_is_incorrect": {
+      "english": "Text length can be from 1 to 50 symbols",
+      "latvian": "Teksta garums var būt no 1 līdz 50 simboliem"
+    },
+    "error_updating_table": {
+      "english": "Error while updating the table",
+      "latvian": "Atjauninot tabulu, radās kļūda"
+    },
+    "error_creating_event": {
+      "english": "Error while creating event",
+      "latvian": "Veidojot pasākumu, radās kļūda"
+    },
+    "auth_error": {
+      "english": "Error while authenticating",
+      "latvian": "Autentifikācijas laikā radās kļūda"
+    },
+    "event_name_column": {
+      "english": "Event name",
+      "latvian": "Pasākuma nosaukums"
+    }
 }
   
