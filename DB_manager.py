@@ -66,8 +66,18 @@ class SchoolDB:
         self.check_driver_installed()
         self.credentials = self.read_DB_credentials()
         self.conn_string = f'''Driver={self.credentials['driver']};Server=tcp:{self.credentials['server']},1433;
-                                     Database={self.credentials['database']};Uid={self.credentials['login']};Pwd={self.credentials['password']};
-                                     Encrypt=yes;TrustServerCertificate=no;conn Timeout=30;'''
+                               Database={self.credentials['database']};Uid={self.credentials['login']};Pwd={self.credentials['password']};
+                               Encrypt=yes;TrustServerCertificate=no;conn Timeout=90;'''
+        
+    def connect_to_db(self):
+        for attempts in range(3):
+            try:
+                conn = odbc.connect(self.conn_string)
+                conn.close()
+                return True
+            except Exception:
+                pass
+        return False
         
     def check_driver_installed(self):
         drivers = [x for x in odbc.drivers()]

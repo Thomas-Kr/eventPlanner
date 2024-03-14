@@ -19,8 +19,6 @@ def read_json(file_path: str):
 def read_qss(file_path: str):
     with open(file_path, 'r') as file:
         return file.read()
-    
-school_db = SchoolDB()
 
 try:
     settings = read_json('settings.json')
@@ -28,11 +26,21 @@ try:
 except Exception as err:
     logging.error(f'Error reading *.json files: {err}')
 
+school_db = SchoolDB()
+
 class SignInWindow(QDialog):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle(translations['sign_in'][settings['language']])
+
+        message_box = QMessageBox()
+        message_box.setWindowTitle(translations['connecting_to_db'][settings['language']])
+        message_box.setText("-"*40) # Making the message box wider 
+        message_box.show()
+
+        if school_db.connect_to_db():
+            message_box.close()
 
         self.username_label = QLabel(translations['username'][settings['language']], self)
         self.username_input = QLineEdit(self)

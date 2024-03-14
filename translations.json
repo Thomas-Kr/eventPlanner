@@ -110,6 +110,10 @@
     "event_name_column": {
       "english": "Event name",
       "latvian": "Pasākuma nosaukums"
+    },
+    "connecting_to_db": {
+      "english": "Connecting to the database...",
+      "latvian": "Savienojums ar datu bāzi..."
     }
 }
   
