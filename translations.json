@@ -142,6 +142,15 @@
     "show_finished_events": {
       "english": "Show finished events",
       "latvian": "Rādīt pabeigtos notikumus"
+    },
+    "role": {
+      "english": "Role",
+      "latvian": "Loma"
+    },
+    "users": {
+      "english": "Users",
+      "latvian": "Lietotāji"
     }
 }
+
   

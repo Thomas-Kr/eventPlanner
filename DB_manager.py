@@ -418,6 +418,60 @@ class SchoolDB:
         finally:
             conn.close()
 
+    def select_all_users(self):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        # Select all users
+        query_1 = f'''
+        SELECT userLogin, userPassword, roleID, classID
+        FROM Users;
+        '''
+
+        try:
+            cursor.execute(query_1)
+            users = cursor.fetchall()
+        except Exception as err:
+            logging.error(f'Error executing query_1 in select_all_users(): {err}')
+            conn.close()
+            return -1
+
+        for i in range(len(users)):
+            # Get roleName by roleID
+            query_2 = f'''
+            SELECT roleName
+            FROM Roles
+            WHERE roleID = {users[i][2]}
+            '''
+
+            try:
+                cursor.execute(query_2)
+                role = cursor.fetchone()[0]
+            except Exception as err:
+                logging.error(f'Error executing query_2 in select_all_users(): {err}')
+                conn.close()
+                return -1
+            
+            # Get class and its letter by classID 
+            query_3 = f'''
+            SELECT classNumber, classLetter
+            FROM Classes
+            WHERE classID = {users[i][3]}
+            '''
+
+            try:
+                cursor.execute(query_3)
+                class_data = cursor.fetchone()
+            except Exception as err:
+                logging.error(f'Error executing query_3 in select_all_users(): {err}')
+                conn.close()
+                return -1
+            
+            users[i] = (users[i][0], users[i][1], role, f'{class_data[0]}{class_data[1]}')
+
+        conn.close()
+        return users
+
 if __name__ == "__main__":
     school_DB = SchoolDB()
     #school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
@@ -425,4 +479,5 @@ if __name__ == "__main__":
 
     #print(school_DB.select_all_classes())
     #print(school_DB.select_all_event_types())
-    print(school_DB.select_all_events(True))
+    #print(school_DB.select_all_events(True))
+    print(school_DB.select_all_users())

@@ -92,14 +92,17 @@ class MainWindow(QMainWindow):
         main_tab = QWidget()
         settings_tab = QWidget()
         event_list_tab = QWidget()
+        users_list_tab = QWidget()
 
         # Add 'main' and 'settings' tabs
         self.create_main_tab(main_tab)
         self.create_settings_tab(settings_tab)
+        self.create_users_list_tab(users_list_tab)
         self.create_event_list_tab(event_list_tab)
 
         self.tab_widget.addTab(main_tab, translations['main'][settings['language']])
         self.tab_widget.addTab(event_list_tab, translations['events'][settings['language']])
+        self.tab_widget.addTab(users_list_tab, translations['users'][settings['language']])
         self.tab_widget.addTab(settings_tab, translations['settings'][settings['language']])
 
         self.setCentralWidget(self.tab_widget)
@@ -188,16 +191,16 @@ class MainWindow(QMainWindow):
         main_tab.setLayout(layout)
 
     def create_event_list_tab(self, event_list_tab: QWidget):
-        self.table = QTableWidget(event_list_tab) 
+        self.table_events = QTableWidget(event_list_tab) 
 
-        self.table.setColumnCount(4)  
-        self.table.setHorizontalHeaderLabels([translations['class'][settings['language']], translations['event_name_column'][settings['language']], 
+        self.table_events.setColumnCount(4)  
+        self.table_events.setHorizontalHeaderLabels([translations['class'][settings['language']], translations['event_name_column'][settings['language']], 
                                               translations['event_date'][settings['language']], translations['event_type'][settings['language']]])
-        self.table.itemClicked.connect(self.on_table_item_clicked)
-        self.row_data = []
+        self.table_events.itemClicked.connect(self.on_table_item_clicked)
+        self.row_data_events = []
 
         self.show_finished_events = False
-        self.update_table()
+        self.update_table_events()
 
         self.classes_dropdown_label_2 = QLabel(translations['class_label'][settings['language']], event_list_tab)
         self.classes_dropdown_2 = QComboBox(event_list_tab)
@@ -223,11 +226,11 @@ class MainWindow(QMainWindow):
 
         # Create a button for table updating
         self.update_button = QPushButton(translations['update_table'][settings['language']], event_list_tab)
-        self.update_button.clicked.connect(self.update_table) 
+        self.update_button.clicked.connect(self.update_table_events) 
 
         # Set layout for event_list_tab and all the widgets 
         layout = QVBoxLayout()
-        layout.addWidget(self.table)
+        layout.addWidget(self.table_events)
 
         layout.addWidget(self.light_theme_checkbox)
 
@@ -245,42 +248,42 @@ class MainWindow(QMainWindow):
         else:
             self.show_finished_events = False
 
-        self.update_table()
+        self.update_table_events()
 
-    def update_table(self):
+    def update_table_events(self):
         self.events = school_db.select_all_events(self.show_finished_events)
 
         if self.events == -1:
             QMessageBox.warning(self, translations['error'][settings['language']], translations['error_updating_table'][settings['language']])
             return
         
-        self.table.setRowCount(len(self.events))
+        self.table_events.setRowCount(len(self.events))
 
         # Add data to the table
-        for row_index, row_data in enumerate(self.events):
-            for col_index, cell_data in enumerate(row_data):
+        for row_index, row_data_events in enumerate(self.events):
+            for col_index, cell_data in enumerate(row_data_events):
                 # If its an array of classes
                 if isinstance(cell_data, list):
                     cell_data = ', '.join(cell_data)
 
                 item = QTableWidgetItem(cell_data)
                 item.setTextAlignment(Qt.AlignCenter)
-                self.table.setItem(row_index, col_index, item)
+                self.table_events.setItem(row_index, col_index, item)
 
-        self.table.resizeColumnsToContents()
+        self.table_events.resizeColumnsToContents()
 
     def on_table_item_clicked(self, item):
-        self.row_data = []
+        self.row_data_events = []
         row = item.row()
-        for column in range(self.table.columnCount()):
-            cell_data = self.table.item(row, column).text()
-            self.row_data.append(cell_data)
+        for column in range(self.table_events.columnCount()):
+            cell_data = self.table_events.item(row, column).text()
+            self.row_data_events.append(cell_data)
 
     def select_class_2(self, item):
         self.selected_class_2 = item
 
     def add_class(self):
-        if self.row_data:
+        if self.row_data_events:
             # Check if its senior class (10c, 11b, 12a) or primary - middle class (1b, 5a, 9c)
             if len(self.selected_class_2) == 4:
                 class_number = self.selected_class_2[:2]
@@ -289,22 +292,22 @@ class MainWindow(QMainWindow):
                 class_number = self.selected_class_2[0]
                 class_letter = self.selected_class_2[2]
             
-            output = school_db.create_event(class_number, class_letter, event_name=self.row_data[1], event_date=self.row_data[2], event_type_name=self.row_data[3])
+            output = school_db.create_event(class_number, class_letter, event_name=self.row_data_events[1], event_date=self.row_data_events[2], event_type_name=self.row_data[3])
 
             if output == -1:
                 QMessageBox.warning(self, translations['error'][settings['language']], translations['error_creating_event'][settings['language']])
             elif output == 0:
                 QMessageBox.warning(self, translations['error'][settings['language']], translations['already_attends'][settings['language']])
 
-            self.update_table()
+            self.update_table_events()
         else:
             QMessageBox.warning(self, translations['error'][settings['language']], translations['event_not_selected'][settings['language']])
 
     def delete_event(self):
-        if self.row_data:
-            if school_db.delete_event(event_name=self.row_data[1], event_date=self.row_data[2]):
+        if self.row_data_users:
+            if school_db.delete_event(event_name=self.row_data_events[1], event_date=self.row_data_events[2]):
                 QMessageBox.information(self, translations['event_deleted'][settings['language']], translations['event_was_deleted'][settings['language']])
-                self.update_table()
+                self.update_table_events()
             else:
                 QMessageBox.warning(self, translations['error'][settings['language']], translations['event_was_not_deleted'][settings['language']])
         else:
@@ -333,6 +336,50 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.light_theme_checkbox)
         settings_tab.setLayout(layout)
 
+    def create_users_list_tab(self, users_tab: QWidget):
+        self.table_users = QTableWidget(users_tab) 
+
+        self.table_users.setColumnCount(4)  
+        self.table_users.setHorizontalHeaderLabels([translations['username'][settings['language']], translations['password'][settings['language']], 
+                                              translations['role'][settings['language']], translations['class'][settings['language']]])
+        self.table_users.itemClicked.connect(self.on_table_item_clicked_users)
+        self.row_data_users = []
+
+        self.update_table_users()
+
+        # Set layout for the Settings tab
+        layout = QVBoxLayout()
+        layout.addWidget(self.table_users)
+        users_tab.setLayout(layout)
+
+    def on_table_item_clicked_users(self, item):
+        self.row_data_users = []
+        row = item.row()
+        for column in range(self.table_users.columnCount()):
+            cell_data = self.table_users.item(row, column).text()
+            self.row_data_users.append(cell_data)
+
+    def update_table_users(self):
+        self.users = school_db.select_all_users()
+
+        if self.users == -1:
+            QMessageBox.warning(self, translations['error'][settings['language']], translations['error_updating_table'][settings['language']])
+            return
+        
+        self.table_users.setRowCount(len(self.users))
+
+        print(self.users)
+
+        # Add data to the users table
+        for row_index, row_data_users in enumerate(self.users):
+            for col_index, cell_data in enumerate(row_data_users):
+                item = QTableWidgetItem(cell_data)
+                item.setTextAlignment(Qt.AlignCenter)
+                self.table_users.setItem(row_index, col_index, item)
+
+        self.table_users.resizeColumnsToContents()
+
+
     def update_language(self):
         # Update language in the main tab
         self.event_name_label.setText(translations['event_name'][settings['language']])
@@ -348,8 +395,9 @@ class MainWindow(QMainWindow):
             self.calendar_widget.setLocale(QLocale(QLocale.English))
 
         # Update language in the events tab 
-        self.table.setHorizontalHeaderLabels([translations['class'][settings['language']],translations['event_name_column'][settings['language']], 
+        self.table_events.setHorizontalHeaderLabels([translations['class'][settings['language']],translations['event_name_column'][settings['language']], 
                                               translations['event_date'][settings['language']], translations['event_type'][settings['language']]])
+        self.table_events.resizeColumnsToContents()
         self.classes_dropdown_label_2.setText(translations['class_label'][settings['language']])
         self.add_class_button.setText(translations['add_class'][settings['language']])
         self.delete_event_button.setText(translations['delete_event'][settings['language']])
@@ -364,24 +412,21 @@ class MainWindow(QMainWindow):
         self.tab_widget.setTabText(2, translations['settings'][settings['language']])
 
     def create_event(self):
-        try:
-            if len(self.event_name_input.text()) > 0 and len(self.event_name_input.text()) <= 50:
-                output = school_db.create_event(
-                    class_number=self.selected_class.split()[0], class_letter=self.selected_class.split()[1],
-                    event_name=self.event_name_input.text(), event_type_name=self.selected_event_type, 
-                    event_date=f'{self.selected_date} {f'{self.selected_event_time.hour()}:{self.selected_event_time.minute()}'}')
+        if len(self.event_name_input.text()) > 0 and len(self.event_name_input.text()) <= 50:
+            output = school_db.create_event(
+                class_number=self.selected_class.split()[0], class_letter=self.selected_class.split()[1],
+                event_name=self.event_name_input.text(), event_type_name=self.selected_event_type, 
+                event_date=f'{self.selected_date} {f'{self.selected_event_time.hour()}:{self.selected_event_time.minute()}'}')
 
-                if output == -1:
-                    QMessageBox.warning(self, translations['error'][settings['language']], translations['error_creating_event'][settings['language']])
-                elif output == 0:
-                    QMessageBox.warning(self, translations['error'][settings['language']], translations['already_attends'][settings['language']])
-                else:
-                    QMessageBox.information(self, translations['event_created'][settings['language']], 
-                                            translations['event_created_successfully'][settings['language']])
+            if output == -1:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['error_creating_event'][settings['language']])
+            elif output == 0:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['already_attends'][settings['language']])
             else:
-                QMessageBox.warning(self, translations['error'][settings['language']], translations['text_len_is_incorrect'][settings['language']])
-        except Exception as err:
-            print(err)
+                QMessageBox.information(self, translations['event_created'][settings['language']], 
+                                        translations['event_created_successfully'][settings['language']])
+        else:
+            QMessageBox.warning(self, translations['error'][settings['language']], translations['text_len_is_incorrect'][settings['language']])
 
     # Write the date that is currently selected on the calendar
     def show_selected_date(self, date: QDate):

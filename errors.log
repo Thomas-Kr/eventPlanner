@@ -1,1 +1,5 @@
 2024-03-15 14:50:33,757 - ERROR - Error executing query_2 in delete_event(): ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Incorrect syntax near ','.")
+2024-03-15 21:32:53,113 - ERROR - Error executing query_2 in select_all_users(): 'Row' object does not support item assignment
+2024-03-15 21:33:33,395 - ERROR - Error executing query_2 in select_all_users(): 'Row' object does not support item assignment
+2024-03-15 21:33:46,049 - ERROR - Error executing query_2 in select_all_users(): 'Row' object does not support item assignment
+2024-03-15 21:54:25,284 - ERROR - Error executing query_2 in select_all_users(): ('HY000', 'Attempt to use a closed connection.')
