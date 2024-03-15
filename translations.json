@@ -121,7 +121,23 @@
     },
     "already_attends": {
       "english": "The class already attends the event",
-      "latvian": "Klase jau apmeklē pasākumu"
+      "latvian": "Klase jau apmeklē šo pasākumu"
+    },
+    "event_deleted": {
+      "english": "Event Deleted",
+      "latvian": "Pasākums dzēsts"
+    },
+    "event_was_deleted": {
+      "english": "Event was successfully deleted",
+      "latvian": "Pasākums tika veiksmīgi izdzēsts"
+    },
+    "event_was_not_deleted": {
+      "english": "Event was not deleted due to error",
+      "latvian": "Pasākums netika izdzēsts kļūdas dēļ"
+    },
+    "delete_event": {
+      "english": "Delete Event",
+      "latvian": "Dzēst pasākumu"
     }
 }
   

@@ -1,0 +1,1 @@
+2024-03-15 14:50:33,757 - ERROR - Error executing query_2 in delete_event(): ('42000', "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]Incorrect syntax near ','.")

@@ -211,6 +211,10 @@ class MainWindow(QMainWindow):
         self.add_class_button = QPushButton(translations['add_class'][settings['language']], event_list_tab)
         self.add_class_button.clicked.connect(self.add_class)
 
+        # Create a button for deleting event
+        self.delete_event_button = QPushButton(translations['delete_event'][settings['language']], event_list_tab)
+        self.delete_event_button.clicked.connect(self.delete_event)
+
         # Create a button for table updating
         self.update_button = QPushButton(translations['update_table'][settings['language']], event_list_tab)
         self.update_button.clicked.connect(self.update_table) 
@@ -223,6 +227,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.classes_dropdown_2)
 
         layout.addWidget(self.add_class_button)
+        layout.addWidget(self.delete_event_button)
         layout.addWidget(self.update_button)
         event_list_tab.setLayout(layout)
 
@@ -279,6 +284,16 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, translations['error'][settings['language']], translations['event_not_selected'][settings['language']])
 
+    def delete_event(self):
+        if self.row_data:
+            if school_db.delete_event(event_name=self.row_data[1], event_date=self.row_data[2]):
+                QMessageBox.information(self, translations['event_deleted'][settings['language']], translations['event_was_deleted'][settings['language']])
+                self.update_table()
+            else:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['event_was_not_deleted'][settings['language']])
+        else:
+            QMessageBox.warning(self, translations['error'][settings['language']], translations['event_not_selected'][settings['language']])   
+
     def create_settings_tab(self, settings_tab: QWidget):
         # Create a dropdown menu in the Settings tab
         self.language_dropdown = QComboBox(settings_tab)
@@ -319,6 +334,9 @@ class MainWindow(QMainWindow):
         # Update language in the events tab 
         self.table.setHorizontalHeaderLabels([translations['class'][settings['language']],translations['event_name_column'][settings['language']], 
                                               translations['event_date'][settings['language']], translations['event_type'][settings['language']]])
+        self.classes_dropdown_label_2.setText(translations['class_label'][settings['language']])
+        self.add_class_button.setText(translations['add_class'][settings['language']])
+        self.delete_event_button.setText(translations['delete_event'][settings['language']])
         self.update_button.setText(translations['update_table'][settings['language']])
 
         # Update language in the settings tab

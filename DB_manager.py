@@ -361,6 +361,54 @@ class SchoolDB:
             conn.close()
 
         return data
+    
+    def delete_event(self, event_name, event_date):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        # Get event id from Events
+        query_1 = f'''
+        SELECT eventID 
+        FROM Events
+        WHERE eventName = '{event_name}' AND eventDate = '{event_date}'
+        '''
+
+        try:
+            cursor.execute(query_1)
+            event_id = cursor.fetchone()[0]
+        except Exception as err:
+            logging.error(f'Error executing query_1 in delete_event(): {err}')
+            conn.close()
+            return False
+
+        # Delete event from RegisteredEvents table
+        query_2 = f'''
+        DELETE FROM RegisteredEvents 
+        WHERE eventID = {event_id};
+        '''
+
+        try:
+            cursor.execute(query_2)
+        except Exception as err:
+            logging.error(f'Error executing query_2 in delete_event(): {err}')
+            conn.close()
+            return False
+
+        # Delete event from Events table
+        query_3 = f'''
+        DELETE FROM Events 
+        WHERE eventID = {event_id};
+        '''
+
+        try:
+            cursor.execute(query_3)
+            conn.commit()
+            return True
+        except Exception as err:
+            logging.error(f'Error executing query_3 in delete_event(): {err}')
+            return False
+        finally:
+            conn.close()
 
 if __name__ == "__main__":
     school_DB = SchoolDB()
