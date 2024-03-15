@@ -32,7 +32,7 @@ On the "Events" tab you can:
 - See all the events in the table.
 - Update the table by clicking on the "Update Table" button.
 
-In order to change settings, you need to go to the "Settings" tab. There you can: 
+On the "Settings" tab you can: 
 - Change language by selecting it in the dropdown list.
 - Change theme of the application to dark or light.
 
