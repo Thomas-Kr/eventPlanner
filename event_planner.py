@@ -39,8 +39,11 @@ class SignInWindow(QDialog):
         message_box.setText("-"*40) # Making the message box wider 
         message_box.show()
 
-        if school_db.connect_to_db():
+        if not school_db.connect_to_db():
             message_box.close()
+            QMessageBox.warning(self, translations['error'][settings['language']], translations['db_connection_error'][settings['language']])
+
+        message_box.close()
 
         self.username_label = QLabel(translations['username'][settings['language']], self)
         self.username_input = QLineEdit(self)
@@ -131,6 +134,9 @@ class MainWindow(QMainWindow):
             self.classes_dropdown.addItem(f'{cl[0]} {cl[1]}')
 
         self.classes_dropdown.currentTextChanged.connect(self.select_class)
+
+        # Default value
+        self.selected_class_2 = f'{classes[0][0]} {classes[0][1]}'
 
         # Create a label and dropdown list with all the event types
         self.event_type_label = QLabel(translations['event_type_label'][settings['language']]+':', self)
@@ -243,6 +249,7 @@ class MainWindow(QMainWindow):
         self.table.resizeColumnsToContents()
 
     def on_table_item_clicked(self, item):
+        self.row_data = []
         row = item.row()
         for column in range(self.table.columnCount()):
             cell_data = self.table.item(row, column).text()
@@ -261,7 +268,13 @@ class MainWindow(QMainWindow):
                 class_number = self.selected_class_2[0]
                 class_letter = self.selected_class_2[2]
             
-            school_db.create_event(class_number, class_letter, event_name=self.row_data[1], event_date=self.row_data[2], event_type_name=self.row_data[3])
+            output = school_db.create_event(class_number, class_letter, event_name=self.row_data[1], event_date=self.row_data[2], event_type_name=self.row_data[3])
+
+            if output == -1:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['error_creating_event'][settings['language']])
+            elif output == 0:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['already_attends'][settings['language']])
+
             self.update_table()
         else:
             QMessageBox.warning(self, translations['error'][settings['language']], translations['event_not_selected'][settings['language']])
@@ -319,17 +332,22 @@ class MainWindow(QMainWindow):
     def create_event(self):
         try:
             if len(self.event_name_input.text()) > 0 and len(self.event_name_input.text()) <= 50:
-                if school_db.create_event(class_number=self.selected_class.split()[0], class_letter=self.selected_class.split()[1],
-                                       event_name=self.event_name_input.text(), event_type_name=self.selected_event_type, 
-                                       event_date=f'{self.selected_date} {f'{self.selected_event_time.hour()}:{self.selected_event_time.minute()}'}') == -1:
+                output = school_db.create_event(
+                    class_number=self.selected_class.split()[0], class_letter=self.selected_class.split()[1],
+                    event_name=self.event_name_input.text(), event_type_name=self.selected_event_type, 
+                    event_date=f'{self.selected_date} {f'{self.selected_event_time.hour()}:{self.selected_event_time.minute()}'}')
+
+                if output == -1:
                     QMessageBox.warning(self, translations['error'][settings['language']], translations['error_creating_event'][settings['language']])
-                
-                QMessageBox.information(self, translations['event_created'][settings['language']], 
-                                        translations['event_created_successfully'][settings['language']])
+                elif output == 0:
+                    QMessageBox.warning(self, translations['error'][settings['language']], translations['already_attends'][settings['language']])
+                else:
+                    QMessageBox.information(self, translations['event_created'][settings['language']], 
+                                            translations['event_created_successfully'][settings['language']])
             else:
                 QMessageBox.warning(self, translations['error'][settings['language']], translations['text_len_is_incorrect'][settings['language']])
-        except Exception:
-            pass
+        except Exception as err:
+            print(err)
 
     # Write the date that is currently selected on the calendar
     def show_selected_date(self, date: QDate):

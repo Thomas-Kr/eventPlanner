@@ -29,7 +29,7 @@
     },
     "password": {
       "english": "Password",
-      "latvian": "Lietotājvārds"
+      "latvian": "Parole"
     },
     "error": {
       "english": "Error",
@@ -114,6 +114,14 @@
     "connecting_to_db": {
       "english": "Connecting to the database...",
       "latvian": "Savienojums ar datu bāzi..."
+    },
+    "db_connection_error": {
+      "english": "Error while connecting to the database",
+      "latvian": "Kļūda, veidojot savienojumu ar datu bāzi"
+    },
+    "already_attends": {
+      "english": "The class already attends the event",
+      "latvian": "Klase jau apmeklē pasākumu"
     }
 }
   

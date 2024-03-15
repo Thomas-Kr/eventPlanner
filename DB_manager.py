@@ -180,7 +180,7 @@ class SchoolDB:
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
 
-        # Find class by class_number and class_letter
+        # Find ID of class
         query_1 = f'''
         SELECT classID 
         FROM Classes 
@@ -197,7 +197,7 @@ class SchoolDB:
                 return -1
             
 
-        # Find index of event type
+        # Find ID of event type
         query_2 = f'''
         SELECT eventTypeID 
         FROM EventTypes 
@@ -212,6 +212,7 @@ class SchoolDB:
                 conn.close()
                 return -1
 
+        # Find ID of event
         query_3 = f'''
         SELECT eventID 
         FROM Events 
@@ -220,13 +221,13 @@ class SchoolDB:
 
         try:
             cursor.execute(query_3)
-            event = cursor.fetchone()
+            event_id = cursor.fetchone()
         except Exception as err:
                 logging.error(f'Error executing query_3 in create_event(): {err}')
                 conn.close()
                 return -1
 
-        if not event:
+        if not event_id:
             # If event does not exist - create it
             query_4 = f'''
             INSERT INTO Events (eventName, eventDate, eventTypeID) VALUES ('{event_name}', '{event_date}', '{event_type_id}');
@@ -241,18 +242,32 @@ class SchoolDB:
                 conn.close()
                 return -1
         else:
-            # If event already exists - save its ID
-            event_id = event[0]
+            # If event already exists - check if the class already attends it
+            query_5 = f'''
+            SELECT RegisteredEventID
+            FROM RegisteredEvents
+            WHERE classID = {class_id} AND eventID = {event_id[0]};
+            '''
+
+            try:
+                cursor.execute(query_5)
+                if cursor.fetchone():
+                    conn.close()
+                    return 0
+            except Exception as err:
+                logging.error(f'Error executing query_5 in create_event(): {err}')
+                conn.close()
+                return -1
         
         # Add the event to the RegisteredEvents table
-        query_5 = f'''
-        INSERT INTO RegisteredEvents(classID, eventID) VALUES ({class_id}, {event_id});   
+        query_6 = f'''
+        INSERT INTO RegisteredEvents(classID, eventID) VALUES ({class_id}, {event_id[0]});   
         '''
 
         try:
-            cursor.execute(query_5)
+            cursor.execute(query_6)
         except Exception as err:
-            logging.error(f'Error executing query_5 in create_event(): {err}')
+            logging.error(f'Error executing query_6 in create_event(): {err}')
             return -1
         finally:
             conn.commit()
