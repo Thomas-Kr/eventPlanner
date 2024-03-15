@@ -138,6 +138,10 @@
     "delete_event": {
       "english": "Delete Event",
       "latvian": "Dzēst pasākumu"
+    },
+    "show_finished_events": {
+      "english": "Show finished events",
+      "latvian": "Rādīt pabeigtos notikumus"
     }
 }
   

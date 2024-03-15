@@ -53,6 +53,7 @@ self.role_id represents the role of the authenticated user:
 
 import json
 import logging
+from datetime import datetime
 
 import pypyodbc as odbc
 
@@ -95,12 +96,13 @@ class SchoolDB:
         except Exception as err:
             logging.error(f'Error reading credentials.json: {err}')
 
-    def select_all_events(self):
+    def select_all_events(self, show_finished_events):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
 
         data = []
 
+        # Select all classID and eventID of every event
         query_1 = f'''
         SELECT classID, eventID
         FROM RegisteredEvents
@@ -144,7 +146,13 @@ class SchoolDB:
                 logging.error(f'Error executing query_3 in select_all_events(): {err}')
                 conn.close()
                 return -1
+            
+            event_date = event_data[0][1]
 
+            if show_finished_events is False and event_date < datetime.now():
+                continue
+
+            # Select event type name by its ID
             query_4 = f'''
             SELECT eventTypeName
             FROM EventTypes
@@ -159,7 +167,7 @@ class SchoolDB:
                 conn.close()
                 return -1
 
-            data.append([str(class_data[0][0]) + class_data[0][1], event_data[0][0], event_data[0][1].strftime("%Y-%m-%d %H:%M"), event_name[0][0]])
+            data.append([str(class_data[0][0]) + class_data[0][1], event_data[0][0], event_date.strftime("%Y-%m-%d %H:%M"), event_name[0][0]])
 
         conn.commit()
         conn.close()
@@ -417,4 +425,4 @@ if __name__ == "__main__":
 
     #print(school_DB.select_all_classes())
     #print(school_DB.select_all_event_types())
-    print(school_DB.select_all_events())
+    print(school_DB.select_all_events(True))

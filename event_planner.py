@@ -196,6 +196,7 @@ class MainWindow(QMainWindow):
         self.table.itemClicked.connect(self.on_table_item_clicked)
         self.row_data = []
 
+        self.show_finished_events = False
         self.update_table()
 
         self.classes_dropdown_label_2 = QLabel(translations['class_label'][settings['language']], event_list_tab)
@@ -206,6 +207,11 @@ class MainWindow(QMainWindow):
             self.classes_dropdown_2.addItem(f'{cl[0]} {cl[1]}')
 
         self.classes_dropdown_2.currentTextChanged.connect(self.select_class_2)
+
+        # Create a checkbox for finished events
+        self.light_theme_checkbox = QCheckBox(translations['show_finished_events'][settings['language']])
+        self.light_theme_checkbox.setChecked(False)
+        self.light_theme_checkbox.stateChanged.connect(self.toggle_show_finished_events)
 
         # Create a button for adding a class to some event
         self.add_class_button = QPushButton(translations['add_class'][settings['language']], event_list_tab)
@@ -223,6 +229,8 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(self.table)
 
+        layout.addWidget(self.light_theme_checkbox)
+
         layout.addWidget(self.classes_dropdown_label_2)
         layout.addWidget(self.classes_dropdown_2)
 
@@ -231,8 +239,16 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.update_button)
         event_list_tab.setLayout(layout)
 
+    def toggle_show_finished_events(self, state: int):
+        if state == 2:
+            self.show_finished_events = True # 2 corresponds to checked state
+        else:
+            self.show_finished_events = False
+
+        self.update_table()
+
     def update_table(self):
-        self.events = school_db.select_all_events()
+        self.events = school_db.select_all_events(self.show_finished_events)
 
         if self.events == -1:
             QMessageBox.warning(self, translations['error'][settings['language']], translations['error_updating_table'][settings['language']])
