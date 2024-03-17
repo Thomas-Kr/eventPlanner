@@ -235,7 +235,7 @@ class SchoolDB:
                 conn.close()
                 return -1
 
-        if not event_id:
+        if event_id is None:
             # If event does not exist - create it
             query_4 = f'''
             INSERT INTO Events (eventName, eventDate, eventTypeID) VALUES ('{event_name}', '{event_date}', '{event_type_id}');
@@ -244,7 +244,7 @@ class SchoolDB:
             try:
                 cursor.execute(query_4)
                 cursor.execute("SELECT SCOPE_IDENTITY()") # Get index of the created event
-                event_id = cursor.fetchone()[0]
+                event_id = cursor.fetchone()
             except Exception as err:
                 logging.error(f'Error executing query_4 in create_event(): {err}')
                 conn.close()
@@ -471,6 +471,59 @@ class SchoolDB:
 
         conn.close()
         return users
+    
+    def delete_class_from_event(self, class_number, class_letter):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        # Select class classID from Classes by classNumber and classLetter
+        query_1 = f'''
+        SELECT classID
+        FROM Classes
+        WHERE classNumber = {class_number} AND classLetter = '{class_letter}';
+        '''
+
+        try:
+            cursor.execute(query_1)
+            class_id = cursor.fetchone()[0]
+            if class_id is None:
+                return 0    
+        except Exception as err:
+                logging.error(f'Error executing query_1 in delete_class_from_event(): {err}')
+                conn.close()
+                return -1
+        
+        # Check if class attends the event
+        query_2 = f'''
+        SELECT registeredEventID
+        FROM RegisteredEvents
+        WHERE classID = {class_id}
+        '''
+
+        try:
+            cursor.execute(query_2)
+            if cursor.fetchone() is None:
+                return 0
+        except Exception as err:
+                logging.error(f'Error executing query_2 in delete_class_from_event(): {err}')
+                conn.close()
+                return -1
+
+        # Delete class from event by classID
+        query_3 = f'''
+        DELETE FROM RegisteredEvents
+        WHERE classID = {class_id}
+        '''
+
+        try:
+            cursor.execute(query_3)
+            cursor.commit()
+            return True
+        except Exception as err:
+                logging.error(f'Error executing query_3 in delete_class_from_event(): {err}')
+                return -1
+        finally:
+            conn.close()
 
 if __name__ == "__main__":
     school_DB = SchoolDB()

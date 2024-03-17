@@ -150,6 +150,18 @@
     "users": {
       "english": "Users",
       "latvian": "Lietotāji"
+    },
+    "delete_class_from_event": {
+      "english": "Delete class from event",
+      "latvian": "Dzēst klase no pasākuma"
+    },
+    "class_was_not_deleted_from_event": {
+      "english": "Class was not deleted from the event due to error",
+      "latvian": "Klase netika izdzēsta no pasākuma kļūdas dēļ"
+    },
+    "class_does_not_attend_event": {
+      "english": "The class does not attend this event",
+      "latvian": "Klase šo pasākumu neapmeklē"
     }
 }
 
