@@ -76,11 +76,12 @@ class SchoolDB:
                           Database=master;'''
         
         conn = odbc.connect(conn_string_1)
+        conn.autocommit = True
         cursor = conn.cursor()
 
         query_1 = f'''
-        IF DB_ID('SchoolEvents') IS NULL 
-        CREATE DATABASE '{self.credentials['database']}'          
+        IF DB_ID('{self.credentials['database']}') IS NULL 
+        CREATE DATABASE [{self.credentials['database']}];
         '''
 
         try:
