@@ -39,7 +39,7 @@ class SignInWindow(QDialog):
         message_box.setText("-"*40) # Making the message box wider 
         message_box.show()
 
-        if not school_db.connect_to_db():
+        if school_db.connect_to_db() is False:
             message_box.close()
             QMessageBox.warning(self, translations['error'][settings['language']], translations['db_connection_error'][settings['language']])
 
@@ -75,7 +75,6 @@ class SignInWindow(QDialog):
             QMessageBox.warning(self, translations['error'][settings['language']], translations['auth_error'][settings['language']])
         else:
             QMessageBox.warning(self, translations['error'][settings['language']], translations['invalid_usrn_or_psw'][settings['language']])
-
 
 class MainWindow(QMainWindow):
     def __init__(self):

@@ -1,0 +1,1 @@
+2024-04-08 14:21:16,571 - ERROR - Error executing query_1 in create_db(): ('42000', "[42000] [Microsoft][ODBC SQL Server Driver][SQL Server]Incorrect syntax near 'SchoolEvents'. (102) (SQLExecDirectW)")

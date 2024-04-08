@@ -55,7 +55,7 @@ import json
 import logging
 from datetime import datetime
 
-import pypyodbc as odbc
+import pyodbc as odbc
 
 from os import system
 
@@ -66,12 +66,180 @@ class SchoolDB:
     def __init__(self):
         self.check_driver_installed()
         self.credentials = self.read_DB_credentials()
-        self.conn_string = f'''Driver={self.credentials['driver']};Server=tcp:{self.credentials['server']},1433;
-                               Database={self.credentials['database']};Uid={self.credentials['login']};Pwd={self.credentials['password']};
-                               Encrypt=yes;TrustServerCertificate=no;conn Timeout=90;'''
+        self.conn_string = f'''Driver={self.credentials['driver']};
+                               Server={self.credentials['server']};
+                               Database={self.credentials['database']};'''
+        
+    def create_db(self):
+        conn_string_1 = f'''Driver={self.credentials['driver']};
+                          Server={self.credentials['server']};
+                          Database=master;'''
+        
+        conn = odbc.connect(conn_string_1)
+        cursor = conn.cursor()
+
+        query_1 = f'''
+        IF DB_ID('SchoolEvents') IS NULL 
+        CREATE DATABASE '{self.credentials['database']}'          
+        '''
+
+        try:
+            cursor.execute(query_1)
+            conn.commit()
+        except Exception as err:
+            logging.error(f'Error executing query_1 in create_db(): {err}')
+            return -1
+        finally:
+            conn.close()  
+
+        conn_string_2 = f'''Driver={self.credentials['driver']};
+                            Server={self.credentials['server']};
+                            Database={self.credentials['database']};'''
+            
+        conn = odbc.connect(conn_string_2)
+        cursor = conn.cursor()
+
+        query_2 = f'''
+        IF OBJECT_ID('Classes', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Classes (
+                classID INT PRIMARY KEY IDENTITY,
+                classNumber TINYINT,
+                classLetter CHAR(1)
+            )
+            
+            INSERT INTO Classes (classNumber, classLetter)
+            VALUES
+                (1, 'a'), (2, 'a'), (3, 'b'), (4, 'a'),
+                (3, 'a'), (4, 'b'), (5, 'a'), (5, 'b'),
+                (5, 'c'), (6, 'a'), (7, 'a'), (8, 'a'),
+                (9, 'a'), (10, 'a'), (10, 'b'), (11, 'a'),
+                (11, 'b'), (12, 'a')
+        END
+        '''
+
+        try:
+            cursor.execute(query_2)
+        except Exception as err:
+            logging.error(f'Error executing query_2 in create_db(): {err}')
+            conn.close()
+            return -1
+
+        query_3 = f'''
+        IF OBJECT_ID('EventTypes', 'U') IS NULL
+        BEGIN
+            CREATE TABLE EventTypes (
+                eventTypeID INT PRIMARY KEY IDENTITY,
+                eventTypeName VARCHAR(50),
+                isStudyEvent BIT
+            )
+
+            INSERT INTO EventTypes (eventTypeName, isStudyEvent)
+            VALUES
+                ('Examinations', 1),
+                ('Trip', 0),
+                ('Concert', 0),
+                ('Seminars', 1)
+        END
+        '''
+
+        try:
+            cursor.execute(query_3)
+        except Exception as err:
+            logging.error(f'Error executing query_3 in create_db(): {err}')
+            conn.close()
+            return -1
+
+        query_4 = f'''
+        IF OBJECT_ID('Events', 'U') IS NULL
+        CREATE TABLE Events (
+            eventID INT PRIMARY KEY IDENTITY,
+            eventName VARCHAR(50),
+            eventDate DATETIME,
+            eventTypeID INT,
+            FOREIGN KEY (eventTypeID) REFERENCES EventTypes(eventTypeID) 
+        )
+        '''
+
+        try:
+            cursor.execute(query_4)
+        except Exception as err:
+            logging.error(f'Error executing query_4 in create_db(): {err}')
+            conn.close()
+            return -1
+
+        query_5 = f'''
+        IF OBJECT_ID('RegisteredEvents', 'U') IS NULL
+        CREATE TABLE RegisteredEvents (
+            registeredEventID INT PRIMARY KEY IDENTITY,
+            classID INT,
+            eventID INT,
+            FOREIGN KEY (classID) REFERENCES Classes(classID),
+            FOREIGN KEY (eventID) REFERENCES Events(eventID)
+        )
+        '''
+
+        try:
+            cursor.execute(query_5)
+        except Exception as err:
+            logging.error(f'Error executing query_5 in create_db(): {err}')
+            conn.close()
+            return -1
+
+        query_6 = f'''
+        IF OBJECT_ID('Roles', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Roles (
+                roleID INT PRIMARY KEY IDENTITY,
+                roleName VARCHAR(20)
+            )
+
+            INSERT INTO Roles (roleName)
+            VALUES
+                ('School Worker'),
+                ('Class Teacher'),
+                ('School Administrator'),
+                ('Superuser')
+        END
+        '''
+
+        try:
+            cursor.execute(query_6)
+        except Exception as err:
+            logging.error(f'Error executing query_6 in create_db(): {err}')
+            conn.close()
+            return -1
+
+        query_7 = f'''
+        IF OBJECT_ID('Users', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Users (
+                userID INT PRIMARY KEY IDENTITY,
+                userLogin VARCHAR(20),
+                userPassword VARCHAR(20),
+                roleID INT,
+                classID INT,
+                FOREIGN KEY (roleID) REFERENCES Roles(roleID),
+                FOREIGN KEY (classID) REFERENCES Classes(classID)
+            )
+
+            INSERT INTO Users (userLogin, userPassword, roleID, classID)
+            VALUES
+                ('Tomass', 'admin123', 4, 1)
+        END
+        '''
+
+        try:
+            cursor.execute(query_7)
+            conn.commit()
+        except Exception as err:
+            logging.error(f'Error executing query_7 in create_db(): {err}')
+            return -1
+        finally:
+           conn.close() 
         
     def connect_to_db(self):
-        for attempts in range(3):
+        for _ in range(3):
             try:
                 conn = odbc.connect(self.conn_string)
                 conn.close()
@@ -533,4 +701,5 @@ if __name__ == "__main__":
     #print(school_DB.select_all_classes())
     #print(school_DB.select_all_event_types())
     #print(school_DB.select_all_events(True))
-    print(school_DB.select_all_users())
+    #print(school_DB.select_all_users())
+    school_DB.create_db()
