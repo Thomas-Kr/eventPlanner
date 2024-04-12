@@ -1,1 +1,12 @@
 2024-04-08 14:21:16,571 - ERROR - Error executing query_1 in create_db(): ('42000', "[42000] [Microsoft][ODBC SQL Server Driver][SQL Server]Incorrect syntax near 'SchoolEvents'. (102) (SQLExecDirectW)")
+2024-04-08 22:03:33,933 - ERROR - Error executing query_1 in change_user_data(): ('42S02', "[42S02] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid object name 'SchoolEvents'. (208) (SQLExecDirectW)")
+2024-04-08 22:05:34,907 - ERROR - Error executing query_1 in change_user_data(): ('42S22', "[42S22] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid column name 'username'. (207) (SQLExecDirectW); [42S22] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid column name 'password'. (207)")
+2024-04-08 22:07:57,069 - ERROR - Error executing query_1 in change_user_data(): ('42S22', "[42S22] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid column name 'Tomas'. (207) (SQLExecDirectW)")
+2024-04-11 18:38:23,079 - ERROR - Error executing query_6 in change_user_data(): ('42S22', "[42S22] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid column name 'userID'. (207) (SQLExecDirectW)")
+2024-04-11 18:38:38,053 - ERROR - Error executing query_6 in change_user_data(): ('42S22', "[42S22] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid column name 'userID'. (207) (SQLExecDirectW)")
+2024-04-11 18:41:34,999 - ERROR - Error executing query_1 in change_user_data(): 'NoneType' object is not subscriptable
+2024-04-11 18:41:43,429 - ERROR - Error executing query_1 in change_user_data(): 'NoneType' object is not subscriptable
+2024-04-11 18:45:12,150 - ERROR - Error executing query_1 in change_user_data(): 'NoneType' object is not subscriptable
+2024-04-11 18:46:10,555 - ERROR - Error executing query_1 in change_user_data(): 'NoneType' object is not subscriptable
+2024-04-11 19:29:36,636 - ERROR - Error executing query_3 in add_user(): ('42S02', "[42S02] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid object name 'table_name'. (208) (SQLExecDirectW)")
+2024-04-11 19:29:57,433 - ERROR - Error executing query_3 in add_user(): ('42S02', "[42S02] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid object name 'table_name'. (208) (SQLExecDirectW)")

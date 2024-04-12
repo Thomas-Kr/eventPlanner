@@ -159,9 +159,37 @@
       "english": "Class was not deleted from the event due to error",
       "latvian": "Klase netika izdzēsta no pasākuma kļūdas dēļ"
     },
+    "delete_user": {
+      "english": "Delete user",
+      "latvian": "Dzēst lietotāju"
+    },
+    "add_user": {
+      "english": "Add user",
+      "latvian": "Pievienot lietotāju"
+    },
+    "change_user_data": {
+      "english": "Change user data",
+      "latvian": "Mainiet lietotāja datus"
+    },
     "class_does_not_attend_event": {
       "english": "The class does not attend this event",
       "latvian": "Klase šo pasākumu neapmeklē"
+    },
+    "error_searching_user": {
+      "english": "Error searching the user",
+      "latvian": "Meklējot lietotāju, radās kļūda"
+    },
+    "error_adding_user": {
+      "english": "Error adding a user",
+      "latvian": "Pievienojot lietotāju, radās kļūda"
+    },
+    "user_already_exists": {
+      "english": "User already exists",
+      "latvian": "Lietotājs jau eksistē"
+    },
+    "role_label": {
+      "english": "Select role",
+      "latvian": "Izvēlieties lomu"
     }
 }
 

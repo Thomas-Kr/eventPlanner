@@ -53,27 +53,27 @@ self.role_id represents the role of the authenticated user:
 
 import json
 import logging
+import socket
+
 from datetime import datetime
 
 import pyodbc as odbc
-
-from os import system
 
 # Configure logging
 logging.basicConfig(filename='errors.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class SchoolDB:
     def __init__(self):
-        self.check_driver_installed()
+        self.server_name = socket.gethostname()
         self.credentials = self.read_DB_credentials()
         self.conn_string = f'''Driver={self.credentials['driver']};
-                               Server={self.credentials['server']};
+                               Server={self.server_name};
                                Database={self.credentials['database']};'''
         
     def create_db(self):
         conn_string_1 = f'''Driver={self.credentials['driver']};
-                          Server={self.credentials['server']};
-                          Database=master;'''
+                            Server={self.server_name};
+                            Database=master;'''
         
         conn = odbc.connect(conn_string_1)
         conn.autocommit = True
@@ -94,7 +94,7 @@ class SchoolDB:
             conn.close()  
 
         conn_string_2 = f'''Driver={self.credentials['driver']};
-                            Server={self.credentials['server']};
+                            Server={self.server_name};
                             Database={self.credentials['database']};'''
             
         conn = odbc.connect(conn_string_2)
@@ -227,6 +227,7 @@ class SchoolDB:
             INSERT INTO Users (userLogin, userPassword, roleID, classID)
             VALUES
                 ('Tomass', 'admin123', 4, 1)
+                ('Konstantins', admin123, 4, 2)
         END
         '''
 
@@ -248,15 +249,6 @@ class SchoolDB:
             except Exception:
                 pass
         return False
-        
-    def check_driver_installed(self):
-        drivers = [x for x in odbc.drivers()]
-
-        if 'ODBC Driver 18 for SQL Server' not in drivers:
-            try:
-                system('msiexec /i "msodbcsql.msi"')
-            except Exception as err:
-                logging.error(f'Error downloading ODBC driver: {err}')
 
     def read_DB_credentials(self):
         try:
@@ -689,18 +681,217 @@ class SchoolDB:
             cursor.commit()
             return True
         except Exception as err:
-                logging.error(f'Error executing query_3 in delete_class_from_event(): {err}')
-                return -1
+            logging.error(f'Error executing query_3 in delete_class_from_event(): {err}')
+            return -1
         finally:
             conn.close()
 
+    def select_all_roles(self):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        # Select all users
+        query = f'''
+        SELECT roleName
+        FROM Roles;
+        '''
+
+        try:
+            cursor.execute(query)
+            data = cursor.fetchall()
+        except Exception as err:
+            logging.error(f'Error executing query in select_all_roles(): {err}')
+            return
+        finally:   
+            conn.close()
+
+        return data
+    
+    def change_user_data(self, user_id, new_username, new_password, new_role, new_class_number, new_class_letter):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        if new_username != "":
+            query_1 = f'''
+            UPDATE Users 
+            SET userLogin = '{new_username}'
+            WHERE userID = {user_id};
+            '''
+
+            try:
+                cursor.execute(query_1)
+            except Exception as err:
+                logging.error(f'Error executing query_1 in change_user_data(): {err}')
+                conn.close()
+                return -1
+            
+        if new_password != "":
+            query_2 = f'''
+            UPDATE Users 
+            SET userPassword = '{new_password}'
+            WHERE userID = {user_id};
+            '''
+
+            try:
+                cursor.execute(query_2)
+            except Exception as err:
+                logging.error(f'Error executing query_2 in change_user_data(): {err}')
+                conn.close()
+                return -1
+            
+        if new_role != "":
+            query_3 = f'''
+            SELECT roleID
+            FROM Roles
+            WHERE roleName = '{new_role}';
+            '''
+
+            try:
+                cursor.execute(query_3)
+                role_id = cursor.fetchone()[0]
+            except Exception as err:
+                logging.error(f'Error executing query_3 in change_user_data(): {err}')
+                conn.close()
+                return -1
+
+            query_4 = f'''
+            UPDATE Users 
+            SET roleID = {role_id}
+            WHERE userID = {user_id};
+            '''
+
+            try:
+                cursor.execute(query_4)
+            except Exception as err:
+                logging.error(f'Error executing query_4 in change_user_data(): {err}')
+                conn.close()
+                return -1
+            
+        if new_class_number is not None:
+            query_5 = f'''
+            SELECT classID
+            FROM Classes
+            WHERE classNumber = {new_class_number} AND classLetter = '{new_class_letter}';
+            '''
+
+            try:
+                cursor.execute(query_5)
+                class_id = cursor.fetchone()[0]
+            except Exception as err:
+                logging.error(f'Error executing query_5 in change_user_data(): {err}')
+                conn.close()
+                return -1
+            
+            query_6 = f'''
+            UPDATE Users 
+            SET classID = {class_id}
+            WHERE userID = {user_id};
+            '''
+
+            try:
+                cursor.execute(query_6)
+            except Exception as err:
+                logging.error(f'Error executing query_6 in change_user_data(): {err}')
+                conn.close()
+                return -1
+            
+        conn.commit()
+        conn.close()
+
+    def get_user_id(self, username, password):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        query = f'''
+        SELECT userID
+        FROM Users
+        WHERE userLogin = '{username}' AND userPassword = '{password}';
+        '''
+
+        try:
+            cursor.execute(query)
+            return cursor.fetchone()[0]
+        except Exception:
+            return False
+        finally: 
+            conn.close()
+
+    def delete_user(self, user_id):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        query = f'''
+        DELETE FROM Users
+        WHERE userID = {user_id};
+        '''
+
+        try:
+            cursor.execute(query)
+            conn.commit()
+        except Exception as err:
+            logging.error(f'Error executing query in delete_user(): {err}')
+            return False
+        finally: 
+            conn.close()   
+
+    def add_user(self, username, password, role, class_number, class_letter):
+        conn = odbc.connect(self.conn_string)
+        cursor = conn.cursor()
+
+        query_1 = f'''
+        SELECT userID
+        FROM Users
+        WHERE userLogin = '{username}';
+        '''
+
+        try:
+            cursor.execute(query_1)
+            user_id = cursor.fetchone()
+        except Exception as err:
+            logging.error(f'Error executing query_1 in add_user(): {err}')
+            return -1
+        
+        if user_id is None:
+            query_2 = f'''
+            SELECT roleID
+            FROM Roles
+            WHERE roleName = '{role}';
+            '''
+
+            try:
+                cursor.execute(query_2)
+                role_id = cursor.fetchone()[0]
+            except Exception as err:
+                logging.error(f'Error executing query_2 in add_user(): {err}')
+                return -1
+
+            query_3 = f'''
+            SELECT classID
+            FROM Classes
+            WHERE classNumber = {class_number} AND classLetter = '{class_letter}';
+            '''
+            try:
+                cursor.execute(query_3)
+                class_id = cursor.fetchone()[0]
+            except Exception as err:
+                logging.error(f'Error executing query_3 in add_user(): {err}')
+                return -1
+            
+            query_4 = f'''
+            INSERT INTO Users (userLogin, userPassword, roleID, classID)
+            VALUES ('{username}', '{password}', {role_id}, {class_id});
+            '''
+
+            try:
+                cursor.execute(query_4)
+                conn.commit()
+            except Exception as err:
+                logging.error(f'Error executing query_4 in add_user(): {err}')
+                return -1
+            finally:
+                conn.close()
+        else:
+            return 0
+            
 if __name__ == "__main__":
     school_DB = SchoolDB()
-    #school_DB.create_event(class_number=10, class_letter='a', event_name='New Year concerts', event_type_name='Concert', event_date='2024-03-07 15:30')
-    #print(school_DB.select_all_from_table("RegisteredEvents"))
-
-    #print(school_DB.select_all_classes())
-    #print(school_DB.select_all_event_types())
-    #print(school_DB.select_all_events(True))
-    #print(school_DB.select_all_users())
-    school_DB.create_db()

@@ -20,6 +20,17 @@ def read_qss(file_path: str):
     with open(file_path, 'r') as file:
         return file.read()
 
+# Check if its senior class (10c, 11b, 12a) or primary - middle class (1b, 5a, 9c)
+def separate_class(class_str):
+    if len(class_str) == 4:
+        class_number = class_str[:2]
+        class_letter = class_str[3]
+    else:
+        class_number = class_str[0]
+        class_letter = class_str[2]
+
+    return class_number, class_letter
+
 try:
     settings = read_json('settings.json')
     translations = read_json('translations.json')
@@ -123,7 +134,7 @@ class MainWindow(QMainWindow):
         self.create_event_button = QPushButton(translations['create_event'][settings['language']]+':', main_tab)
         self.create_event_button.clicked.connect(self.create_event)
 
-        # Create label
+        # Create input box
         self.event_name_label = QLabel(translations['event_name'][settings['language']]+':', main_tab)
         self.event_name_input = QLineEdit(main_tab)
 
@@ -211,9 +222,9 @@ class MainWindow(QMainWindow):
         self.classes_dropdown_2.currentTextChanged.connect(self.select_class_2)
 
         # Create a checkbox for finished events
-        self.light_theme_checkbox = QCheckBox(translations['show_finished_events'][settings['language']])
-        self.light_theme_checkbox.setChecked(False)
-        self.light_theme_checkbox.stateChanged.connect(self.toggle_show_finished_events)
+        self.show_finished_events_checkbox = QCheckBox(translations['show_finished_events'][settings['language']])
+        self.show_finished_events_checkbox.setChecked(False)
+        self.show_finished_events_checkbox.stateChanged.connect(self.toggle_show_finished_events)
 
         # Create a button for adding a class to event
         self.add_class_button = QPushButton(translations['add_class'][settings['language']], event_list_tab)
@@ -235,7 +246,7 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.addWidget(self.table_events)
 
-        layout.addWidget(self.light_theme_checkbox)
+        layout.addWidget(self.show_finished_events_checkbox)
 
         layout.addWidget(self.classes_dropdown_label_2)
         layout.addWidget(self.classes_dropdown_2)
@@ -288,13 +299,7 @@ class MainWindow(QMainWindow):
 
     def add_class(self):
         if self.row_data_events:
-            # Check if its senior class (10c, 11b, 12a) or primary - middle class (1b, 5a, 9c)
-            if len(self.selected_class_2) == 4:
-                class_number = self.selected_class_2[:2]
-                class_letter = self.selected_class_2[3]
-            else:
-                class_number = self.selected_class_2[0]
-                class_letter = self.selected_class_2[2]
+            class_number, class_letter = separate_class(self.selected_class_2)
             
             output = school_db.create_event(class_number, class_letter, event_name=self.row_data_events[1], event_date=self.row_data_events[2], event_type_name=self.row_data_events[3])
 
@@ -309,13 +314,7 @@ class MainWindow(QMainWindow):
 
     def delete_class_from_event(self):
         if self.row_data_events:
-            # Check if its senior class (10c, 11b, 12a) or primary - middle class (1b, 5a, 9c)
-            if len(self.selected_class_2) == 4:
-                class_number = self.selected_class_2[:2]
-                class_letter = self.selected_class_2[3]
-            else:
-                class_number = self.selected_class_2[0]
-                class_letter = self.selected_class_2[2]
+            class_number, class_letter = separate_class(self.selected_class_2)
 
             output = school_db.delete_class_from_event(class_number, class_letter)
 
@@ -371,11 +370,75 @@ class MainWindow(QMainWindow):
         self.row_data_users = []
 
         self.update_table_users()
+        
+        self.username_label = QLabel(translations['username'][settings['language']]+':', users_tab)
+        self.username_input = QLineEdit(users_tab)
+
+        self.password_label = QLabel(translations['password'][settings['language']]+':', users_tab)
+        self.password_input = QLineEdit(users_tab)
+
+        self.classes_dropdown_label_3 = QLabel(translations['class_label'][settings['language']], users_tab)
+        self.classes_dropdown_3 = QComboBox(users_tab)
+        classes = school_db.select_all_classes()
+
+        # Default value
+        self.selected_class_3 = f'{classes[0][0]} {classes[0][1]}'
+        
+        for cl in classes:
+            self.classes_dropdown_3.addItem(f'{cl[0]} {cl[1]}')
+
+        self.classes_dropdown_3.currentTextChanged.connect(self.select_class_3)
+
+        self.roles_dropdown_label = QLabel(translations['role_label'][settings['language']], users_tab)
+        self.roles_dropdown = QComboBox(users_tab)
+        roles = school_db.select_all_roles()
+        
+        self.selected_role = roles[0][0]
+
+        for role in roles:
+            self.roles_dropdown.addItem(role[0])
+
+        self.roles_dropdown.currentTextChanged.connect(self.select_role)
+
+        # Create a button for table updating
+        self.change_user_data_button = QPushButton(translations['change_user_data'][settings['language']], users_tab)
+        self.change_user_data_button.clicked.connect(self.change_user_data) 
+
+        # Create a button for table updating
+        self.add_user_button = QPushButton(translations['add_user'][settings['language']], users_tab)
+        self.add_user_button.clicked.connect(self.add_user) 
+
+        # Create a button for table updating
+        self.delete_user_button = QPushButton(translations['delete_user'][settings['language']], users_tab)
+        self.delete_user_button.clicked.connect(self.delete_user) 
 
         # Set layout for the Settings tab
         layout = QVBoxLayout()
         layout.addWidget(self.table_users)
+
+        layout.addWidget(self.classes_dropdown_label_3)
+        layout.addWidget(self.classes_dropdown_3)
+
+        layout.addWidget(self.roles_dropdown_label)
+        layout.addWidget(self.roles_dropdown)
+
+        layout.addWidget(self.username_label)
+        layout.addWidget(self.username_input)
+
+        layout.addWidget(self.password_label)
+        layout.addWidget(self.password_input)
+
+        layout.addWidget(self.change_user_data_button)
+        layout.addWidget(self.add_user_button)
+        layout.addWidget(self.delete_user_button)
+
         users_tab.setLayout(layout)
+
+    def select_role(self, item):
+        self.selected_role = item
+
+    def select_class_3(self, item):
+        self.selected_class_3 = item
 
     def on_table_item_clicked_users(self, item):
         self.row_data_users = []
@@ -403,13 +466,51 @@ class MainWindow(QMainWindow):
         self.table_users.resizeColumnsToContents()
 
     def change_user_data(self):
-        pass
+        if self.row_data_users:
+            class_number, class_letter = separate_class(self.selected_class_3)
+
+            user_id = school_db.get_user_id(self.row_data_users[0], self.row_data_users[1])
+
+            if user_id:
+                school_db.change_user_data(user_id=user_id, new_username=self.username_input.text(), 
+                                        new_password=self.password_input.text(), new_role=self.selected_role, 
+                                        new_class_number=class_number, new_class_letter=class_letter)
+            else:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['error_searching_user'][settings['language']])
+                return
+            
+            self.update_table_users()
 
     def delete_user(self):
-        pass
+        if self.row_data_users:
+            user_id = school_db.get_user_id(self.row_data_users[0], self.row_data_users[1])
+
+            if user_id:
+                school_db.delete_user(user_id)
+            else:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['error_searching_user'][settings['language']])
+                return 
+
+            self.update_table_users()   
+
 
     def add_user(self):
-        pass
+        class_number, class_letter = separate_class(self.selected_class_3)
+
+        if (self.username_input.text() and self.password_input.text() and 
+            self.selected_role and class_number and class_letter):
+            output = school_db.add_user(username=self.username_input.text(), password=self.password_input.text(), 
+                                role=self.selected_role, class_number=class_number, class_letter=class_letter)
+            
+            if output == -1:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['error_adding_user'][settings['language']])
+            elif output == 0:
+                QMessageBox.warning(self, translations['error'][settings['language']], translations['user_already_exists'][settings['language']])
+        else:
+            QMessageBox.warning(self, translations['error'][settings['language']], translations['error_searching_user'][settings['language']])
+            return  
+        
+        self.update_table_users()
 
     def update_language(self):
         # Update language in the main tab
