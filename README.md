@@ -27,13 +27,26 @@ On the "Main" tab you can create a new event. In order to do it:
 5. Chosee event date.
 6. Click on the "Create Event" button.
 
+![Main tab guide](https://github.com/Thomas-Kr/eventPlanner/blob/main/Sources/Tutor_1.png)
+
 On the "Events" tab you can:
 - See all the events in the table.
 - Update the table by clicking on the "Update Table" button.
 
+![Events tab guide](https://github.com/Thomas-Kr/eventPlanner/blob/main/Sources/Tutor_2.png)
+
+In the "Users" tab, you can:
+- Change user information.
+- Add new users.
+- Delete users.
+
+![Users tab guide](https://github.com/Thomas-Kr/eventPlanner/blob/main/Sources/Tutor_3.png)
+
 On the "Settings" tab you can: 
 - Change language by selecting it in the dropdown list.
 - Change theme of the application to dark or light.
+
+![Settings tab guide](https://github.com/Thomas-Kr/eventPlanner/blob/main/Sources/Tutor_4.png)
 
 ## Details
 - Database is local. After it is created, it is filled with default data.
