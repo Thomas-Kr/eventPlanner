@@ -10,3 +10,4 @@
 2024-04-11 18:46:10,555 - ERROR - Error executing query_1 in change_user_data(): 'NoneType' object is not subscriptable
 2024-04-11 19:29:36,636 - ERROR - Error executing query_3 in add_user(): ('42S02', "[42S02] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid object name 'table_name'. (208) (SQLExecDirectW)")
 2024-04-11 19:29:57,433 - ERROR - Error executing query_3 in add_user(): ('42S02', "[42S02] [Microsoft][ODBC SQL Server Driver][SQL Server]Invalid object name 'table_name'. (208) (SQLExecDirectW)")
+2024-04-19 11:15:14,627 - ERROR - Error executing query_2 in select_all_users(): 'NoneType' object is not subscriptable

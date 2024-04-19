@@ -54,6 +54,7 @@ self.role_id represents the role of the authenticated user:
 import json
 import logging
 import socket
+import hashlib
 
 from datetime import datetime
 
@@ -62,6 +63,13 @@ import pyodbc as odbc
 # Configure logging
 logging.basicConfig(filename='errors.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def hash_password(password):
+        salt = b'my_random_salt'
+        password = password.encode('utf-8')
+        hashed_password = hashlib.sha256(password + salt).hexdigest()
+
+        return hashed_password
+
 class SchoolDB:
     def __init__(self):
         self.server_name = socket.gethostname()
@@ -69,6 +77,8 @@ class SchoolDB:
         self.conn_string = f'''Driver={self.credentials['driver']};
                                Server={self.server_name};
                                Database={self.credentials['database']};'''
+        self.role_id = 1
+        self.classNumber, self.classLetter = 1, 'a'
         
     def create_db(self):
         conn_string_1 = f'''Driver={self.credentials['driver']};
@@ -217,7 +227,7 @@ class SchoolDB:
             CREATE TABLE Users (
                 userID INT PRIMARY KEY IDENTITY,
                 userLogin VARCHAR(20),
-                userPassword VARCHAR(20),
+                userPassword VARCHAR(64),
                 roleID INT,
                 classID INT,
                 FOREIGN KEY (roleID) REFERENCES Roles(roleID),
@@ -226,8 +236,8 @@ class SchoolDB:
 
             INSERT INTO Users (userLogin, userPassword, roleID, classID)
             VALUES
-                ('Tomass', 'admin123', 4, 1)
-                ('Konstantins', admin123, 4, 2)
+                ('Tomass', '{hash_password('admin123')}', 4, 1)
+                ('Konstantins', '{hash_password('admin123')}', 4, 2)
         END
         '''
 
@@ -446,21 +456,37 @@ class SchoolDB:
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
 
-        query = f'''
-        SELECT userPassword, roleID 
+        input_password = hash_password(input_password)
+
+        query_1 = f'''
+        SELECT userPassword, roleID, classID 
         FROM Users 
         WHERE userLogin = '{user_login}';
         '''
 
         try:
-            cursor.execute(query)
+            cursor.execute(query_1)
         except Exception as err:
-                logging.error(f'Error executing query in authenticate(): {err}')
+                logging.error(f'Error executing query_1 in authenticate(): {err}')
                 conn.close()
                 return -1
 
         try:
-            password, self.role_id = cursor.fetchone()
+            password, self.role_id, class_id = cursor.fetchone()
+
+            query_2 = f'''
+            SELECT classNumber, classLetter 
+            FROM Classes 
+            WHERE classID = '{class_id}';
+            '''
+
+            try:
+                cursor.execute(query_2)
+                self.classNumber, self.classLetter = cursor.fetchone()
+            except Exception as err:
+                    logging.error(f'Error executing query_2 in authenticate(): {err}')
+                    return -1
+             
         except TypeError:
             return False
         finally:
@@ -585,7 +611,7 @@ class SchoolDB:
 
         # Select all users
         query_1 = f'''
-        SELECT userLogin, userPassword, roleID, classID
+        SELECT userLogin, roleID, classID
         FROM Users;
         '''
 
@@ -602,7 +628,7 @@ class SchoolDB:
             query_2 = f'''
             SELECT roleName
             FROM Roles
-            WHERE roleID = {users[i][2]}
+            WHERE roleID = {users[i][1]}
             '''
 
             try:
@@ -617,7 +643,7 @@ class SchoolDB:
             query_3 = f'''
             SELECT classNumber, classLetter
             FROM Classes
-            WHERE classID = {users[i][3]}
+            WHERE classID = {users[i][2]}
             '''
 
             try:
@@ -628,7 +654,7 @@ class SchoolDB:
                 conn.close()
                 return -1
             
-            users[i] = (users[i][0], users[i][1], role, f'{class_data[0]}{class_data[1]}')
+            users[i] = (users[i][0], role, f'{class_data[0]}{class_data[1]}')
 
         conn.close()
         return users
@@ -726,6 +752,8 @@ class SchoolDB:
                 return -1
             
         if new_password != "":
+            new_password = hash_password(new_password)
+
             query_2 = f'''
             UPDATE Users 
             SET userPassword = '{new_password}'
@@ -798,14 +826,14 @@ class SchoolDB:
         conn.commit()
         conn.close()
 
-    def get_user_id(self, username, password):
+    def get_user_id(self, username):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
 
         query = f'''
         SELECT userID
         FROM Users
-        WHERE userLogin = '{username}' AND userPassword = '{password}';
+        WHERE userLogin = '{username}';
         '''
 
         try:
@@ -837,6 +865,8 @@ class SchoolDB:
     def add_user(self, username, password, role, class_number, class_letter):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()
+
+        password = hash_password(password)
 
         query_1 = f'''
         SELECT userID

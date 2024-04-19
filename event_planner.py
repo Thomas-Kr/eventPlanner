@@ -106,13 +106,18 @@ class MainWindow(QMainWindow):
 
         # Add 'main' and 'settings' tabs
         self.create_main_tab(main_tab)
-        self.create_settings_tab(settings_tab)
-        self.create_users_list_tab(users_list_tab)
         self.create_event_list_tab(event_list_tab)
+        self.create_users_list_tab(users_list_tab)
+        self.create_settings_tab(settings_tab)
 
-        self.tab_widget.addTab(main_tab, translations['main'][settings['language']])
+        if school_db.role_id > 1:
+            self.tab_widget.addTab(main_tab, translations['main'][settings['language']])
+
         self.tab_widget.addTab(event_list_tab, translations['events'][settings['language']])
-        self.tab_widget.addTab(users_list_tab, translations['users'][settings['language']])
+
+        if school_db.role_id == 4:
+            self.tab_widget.addTab(users_list_tab, translations['users'][settings['language']])
+        
         self.tab_widget.addTab(settings_tab, translations['settings'][settings['language']])
 
         self.setCentralWidget(self.tab_widget)
@@ -125,7 +130,11 @@ class MainWindow(QMainWindow):
 
     def create_main_tab(self, main_tab: QWidget):
         # Default values
-        self.selected_class = f'{school_db.select_all_classes()[0][0]} {school_db.select_all_classes()[0][1]}'
+        if school_db.role_id > 2:
+            self.selected_class = f'{school_db.select_all_classes()[0][0]} {school_db.select_all_classes()[0][1]}'
+        elif school_db.role_id > 1:
+            self.selected_class = f'{school_db.classNumber} {school_db.classLetter}'
+
         self.selected_event_time = QTime(9, 0)
         self.selected_date = datetime.now().strftime('%Y-%m-%d')
         self.selected_event_type = school_db.select_all_event_types()[0][1]
@@ -141,15 +150,16 @@ class MainWindow(QMainWindow):
         # Create a label and dropdown list with all the classes in the school
         self.classes_dropdown_label = QLabel(translations['class_label'][settings['language']]+':', main_tab)
         self.classes_dropdown = QComboBox(main_tab)
+
         classes = school_db.select_all_classes()
 
-        for cl in classes:
-            self.classes_dropdown.addItem(f'{cl[0]} {cl[1]}')
+        if school_db.role_id > 2:
+            for cl in classes:
+                self.classes_dropdown.addItem(f'{cl[0]} {cl[1]}')
+        elif school_db.role_id > 1:
+            self.classes_dropdown.addItem(self.selected_class)
 
         self.classes_dropdown.currentTextChanged.connect(self.select_class)
-
-        # Default value
-        self.selected_class_2 = f'{classes[0][0]} {classes[0][1]}'
 
         # Create a label and dropdown list with all the event types
         self.event_type_label = QLabel(translations['event_type_label'][settings['language']]+':', self)
@@ -212,31 +222,42 @@ class MainWindow(QMainWindow):
         self.show_finished_events = False
         self.update_table_events()
 
-        self.classes_dropdown_label_2 = QLabel(translations['class_label'][settings['language']], event_list_tab)
-        self.classes_dropdown_2 = QComboBox(event_list_tab)
-        classes = school_db.select_all_classes()
+        if school_db.role_id > 1:
+            self.classes_dropdown_label_2 = QLabel(translations['class_label'][settings['language']], event_list_tab)
+            self.classes_dropdown_2 = QComboBox(event_list_tab)
+            classes = school_db.select_all_classes()
         
-        for cl in classes:
-            self.classes_dropdown_2.addItem(f'{cl[0]} {cl[1]}')
+        if school_db.role_id > 2:
+            for cl in classes:
+                self.classes_dropdown_2.addItem(f'{cl[0]} {cl[1]}')
 
-        self.classes_dropdown_2.currentTextChanged.connect(self.select_class_2)
+            # Default value
+            self.selected_class_2 = f'{classes[0][0]} {classes[0][1]}'
+        elif school_db.role_id > 1:
+            self.selected_class_2 = f'{school_db.classNumber} {school_db.classLetter}'
+            self.classes_dropdown_2.addItem(self.selected_class_2)
+
+        if school_db.role_id > 1:
+            self.classes_dropdown_2.currentTextChanged.connect(self.select_class_2)
 
         # Create a checkbox for finished events
         self.show_finished_events_checkbox = QCheckBox(translations['show_finished_events'][settings['language']])
         self.show_finished_events_checkbox.setChecked(False)
         self.show_finished_events_checkbox.stateChanged.connect(self.toggle_show_finished_events)
 
-        # Create a button for adding a class to event
-        self.add_class_button = QPushButton(translations['add_class'][settings['language']], event_list_tab)
-        self.add_class_button.clicked.connect(self.add_class)
+        if school_db.role_id > 2:
+            # Create a button for adding a class to event
+            self.add_class_button = QPushButton(translations['add_class'][settings['language']], event_list_tab)
+            self.add_class_button.clicked.connect(self.add_class)
 
-        # Create a button for deleting a class from event
-        self.delete_class_from_event_button = QPushButton(translations['delete_class_from_event'][settings['language']], event_list_tab)
-        self.delete_class_from_event_button.clicked.connect(self.delete_class_from_event)
+        if school_db.role_id > 1:
+            # Create a button for deleting a class from event
+            self.delete_class_from_event_button = QPushButton(translations['delete_class_from_event'][settings['language']], event_list_tab)
+            self.delete_class_from_event_button.clicked.connect(self.delete_class_from_event)
 
-        # Create a button for deleting event
-        self.delete_event_button = QPushButton(translations['delete_event'][settings['language']], event_list_tab)
-        self.delete_event_button.clicked.connect(self.delete_event)
+            # Create a button for deleting event
+            self.delete_event_button = QPushButton(translations['delete_event'][settings['language']], event_list_tab)
+            self.delete_event_button.clicked.connect(self.delete_event)
 
         # Create a button for table updating
         self.update_button = QPushButton(translations['update_table'][settings['language']], event_list_tab)
@@ -248,12 +269,16 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(self.show_finished_events_checkbox)
 
-        layout.addWidget(self.classes_dropdown_label_2)
-        layout.addWidget(self.classes_dropdown_2)
+        if school_db.role_id > 1:
+            layout.addWidget(self.classes_dropdown_label_2)
+            layout.addWidget(self.classes_dropdown_2)
 
-        layout.addWidget(self.add_class_button)
-        layout.addWidget(self.delete_class_from_event_button)
-        layout.addWidget(self.delete_event_button)
+        if school_db.role_id > 2:
+            layout.addWidget(self.add_class_button)
+
+        if school_db.role_id > 1:
+            layout.addWidget(self.delete_class_from_event_button)
+            layout.addWidget(self.delete_event_button)
         layout.addWidget(self.update_button)
         event_list_tab.setLayout(layout)
 
@@ -363,9 +388,9 @@ class MainWindow(QMainWindow):
     def create_users_list_tab(self, users_tab: QWidget):
         self.table_users = QTableWidget(users_tab) 
 
-        self.table_users.setColumnCount(4)  
-        self.table_users.setHorizontalHeaderLabels([translations['username'][settings['language']], translations['password'][settings['language']], 
-                                              translations['role'][settings['language']], translations['class'][settings['language']]])
+        self.table_users.setColumnCount(3)  
+        self.table_users.setHorizontalHeaderLabels([translations['username'][settings['language']], translations['role'][settings['language']], 
+                                                    translations['class'][settings['language']]])
         self.table_users.itemClicked.connect(self.on_table_item_clicked_users)
         self.row_data_users = []
 
@@ -469,7 +494,7 @@ class MainWindow(QMainWindow):
         if self.row_data_users:
             class_number, class_letter = separate_class(self.selected_class_3)
 
-            user_id = school_db.get_user_id(self.row_data_users[0], self.row_data_users[1])
+            user_id = school_db.get_user_id(self.row_data_users[0])
 
             if user_id:
                 school_db.change_user_data(user_id=user_id, new_username=self.username_input.text(), 
@@ -483,7 +508,7 @@ class MainWindow(QMainWindow):
 
     def delete_user(self):
         if self.row_data_users:
-            user_id = school_db.get_user_id(self.row_data_users[0], self.row_data_users[1])
+            user_id = school_db.get_user_id(self.row_data_users[0])
 
             if user_id:
                 school_db.delete_user(user_id)
@@ -513,33 +538,37 @@ class MainWindow(QMainWindow):
         self.update_table_users()
 
     def update_language(self):
-        # Update language in the main tab
-        self.event_name_label.setText(translations['event_name'][settings['language']])
-        self.create_event_button.setText(translations['create_event'][settings['language']])
-        self.date_label.setText(translations['event_date'][settings['language']]+':')
-        self.classes_dropdown_label.setText(translations['class_label'][settings['language']])
-        self.event_type_label.setText(translations['event_type_label'][settings['language']])
-        self.event_time_label.setText(translations['event_time_label'][settings['language']])
+        if school_db.role_id > 1:
+            # Update language in the main tab
+            self.event_name_label.setText(translations['event_name'][settings['language']])
+            self.create_event_button.setText(translations['create_event'][settings['language']])
+            self.date_label.setText(translations['event_date'][settings['language']]+':')
+            self.classes_dropdown_label.setText(translations['class_label'][settings['language']])
+            self.event_type_label.setText(translations['event_type_label'][settings['language']])
+            self.event_time_label.setText(translations['event_time_label'][settings['language']])
 
-        if settings['language'] == "latvian":
-            self.calendar_widget.setLocale(QLocale(QLocale.Latvian))
-        else:
-            self.calendar_widget.setLocale(QLocale(QLocale.English))
+            if settings['language'] == "latvian":
+                self.calendar_widget.setLocale(QLocale(QLocale.Latvian))
+            else:
+                self.calendar_widget.setLocale(QLocale(QLocale.English))
 
         # Update language in the events tab 
         self.table_events.setHorizontalHeaderLabels([translations['class'][settings['language']],translations['event_name_column'][settings['language']], 
                                                      translations['event_date'][settings['language']], translations['event_type'][settings['language']]])
         self.table_events.resizeColumnsToContents()
-        self.classes_dropdown_label_2.setText(translations['class_label'][settings['language']])
-        self.add_class_button.setText(translations['add_class'][settings['language']])
-        self.delete_event_button.setText(translations['delete_event'][settings['language']])
+        if school_db.role_id > 2:
+            self.add_class_button.setText(translations['add_class'][settings['language']])
+        if school_db.role_id > 1:
+            self.classes_dropdown_label_2.setText(translations['class_label'][settings['language']])
+            self.delete_event_button.setText(translations['delete_event'][settings['language']])
         self.update_button.setText(translations['update_table'][settings['language']])
 
-        # Update language in the users tab
-        self.table_users.setHorizontalHeaderLabels([translations['username'][settings['language']], translations['password'][settings['language']], 
-                                                    translations['role'][settings['language']], translations['class'][settings['language']]])
-        self.table_users.resizeColumnsToContents()
-
+        if school_db.role_id == 4:
+            # Update language in the users tab
+            self.table_users.setHorizontalHeaderLabels([translations['username'][settings['language']], translations['role'][settings['language']], 
+                                                        translations['class'][settings['language']]])
+            self.table_users.resizeColumnsToContents()
+        
         # Update language in the settings tab
         self.light_theme_checkbox.setText(translations['light_theme'][settings['language']])
 
