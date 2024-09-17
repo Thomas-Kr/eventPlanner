@@ -80,7 +80,10 @@ class SchoolDB:
         self.role_id = 1
         self.classNumber, self.classLetter = 1, 'a'
         
-    def create_db(self):
+    def create_sample_db(self):
+        '''
+        Creates DB with sample data
+        '''
         conn_string_1 = f'''Driver={self.credentials['driver']};
                             Server={self.server_name};
                             Database=master;'''
@@ -98,7 +101,7 @@ class SchoolDB:
             cursor.execute(query_1)
             conn.commit()
         except Exception as err:
-            logging.error(f'Error executing query_1 in create_db(): {err}')
+            logging.error(f'Error executing query_1 in create_sample_db(): {err}')
             return -1
         finally:
             conn.close()  
@@ -121,8 +124,8 @@ class SchoolDB:
             
             INSERT INTO Classes (classNumber, classLetter)
             VALUES
-                (1, 'a'), (2, 'a'), (3, 'b'), (4, 'a'),
-                (3, 'a'), (4, 'b'), (5, 'a'), (5, 'b'),
+                (1, 'a'), (2, 'a'), (3, 'b'), (3, 'a'),
+                (4, 'a'), (4, 'b'), (5, 'a'), (5, 'b'),
                 (5, 'c'), (6, 'a'), (7, 'a'), (8, 'a'),
                 (9, 'a'), (10, 'a'), (10, 'b'), (11, 'a'),
                 (11, 'b'), (12, 'a')
@@ -132,7 +135,7 @@ class SchoolDB:
         try:
             cursor.execute(query_2)
         except Exception as err:
-            logging.error(f'Error executing query_2 in create_db(): {err}')
+            logging.error(f'Error executing query_2 in create_sample_db(): {err}')
             conn.close()
             return -1
 
@@ -157,7 +160,7 @@ class SchoolDB:
         try:
             cursor.execute(query_3)
         except Exception as err:
-            logging.error(f'Error executing query_3 in create_db(): {err}')
+            logging.error(f'Error executing query_3 in create_sample_db(): {err}')
             conn.close()
             return -1
 
@@ -175,7 +178,7 @@ class SchoolDB:
         try:
             cursor.execute(query_4)
         except Exception as err:
-            logging.error(f'Error executing query_4 in create_db(): {err}')
+            logging.error(f'Error executing query_4 in create_sample_db(): {err}')
             conn.close()
             return -1
 
@@ -193,7 +196,7 @@ class SchoolDB:
         try:
             cursor.execute(query_5)
         except Exception as err:
-            logging.error(f'Error executing query_5 in create_db(): {err}')
+            logging.error(f'Error executing query_5 in create_sample_db(): {err}')
             conn.close()
             return -1
 
@@ -217,7 +220,7 @@ class SchoolDB:
         try:
             cursor.execute(query_6)
         except Exception as err:
-            logging.error(f'Error executing query_6 in create_db(): {err}')
+            logging.error(f'Error executing query_6 in create_sample_db(): {err}')
             conn.close()
             return -1
 
@@ -236,7 +239,7 @@ class SchoolDB:
 
             INSERT INTO Users (userLogin, userPassword, roleID, classID)
             VALUES
-                ('Tomass', '{hash_password('admin123')}', 4, 1)
+                ('Tomass', '{hash_password('admin123')}', 4, 1),
                 ('Konstantins', '{hash_password('admin123')}', 4, 2)
         END
         '''
@@ -245,12 +248,16 @@ class SchoolDB:
             cursor.execute(query_7)
             conn.commit()
         except Exception as err:
-            logging.error(f'Error executing query_7 in create_db(): {err}')
+            logging.error(f'Error executing query_7 in create_sample_db(): {err}')
             return -1
         finally:
            conn.close() 
         
-    def connect_to_db(self):
+    def connect_to_db(self) -> bool:
+        '''
+        Returns True if connected \n
+        Returns False if not connected
+        '''
         for _ in range(3):
             try:
                 conn = odbc.connect(self.conn_string)
@@ -924,3 +931,4 @@ class SchoolDB:
             
 if __name__ == "__main__":
     school_DB = SchoolDB()
+    school_DB.create_sample_db()
