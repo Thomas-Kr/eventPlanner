@@ -354,7 +354,6 @@ class SchoolDB:
 
         return [[[', '.join(subarrays)], *key] for key, subarrays in grouped_data.items()]
     
-    # Basic version
     def create_event(self, class_number: int, class_letter: str, event_name: str, event_date: str, event_type_name: str):
         conn = odbc.connect(self.conn_string)
         cursor = conn.cursor()

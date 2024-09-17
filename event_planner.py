@@ -425,15 +425,15 @@ class MainWindow(QMainWindow):
 
         self.roles_dropdown.currentTextChanged.connect(self.select_role)
 
-        # Create a button for table updating
+        # Create a button for changing user data
         self.change_user_data_button = QPushButton(translations['change_user_data'][settings['language']], users_tab)
         self.change_user_data_button.clicked.connect(self.change_user_data) 
 
-        # Create a button for table updating
+        # Create a button for adding user
         self.add_user_button = QPushButton(translations['add_user'][settings['language']], users_tab)
         self.add_user_button.clicked.connect(self.add_user) 
 
-        # Create a button for table updating
+        # Create a button for deleting user
         self.delete_user_button = QPushButton(translations['delete_user'][settings['language']], users_tab)
         self.delete_user_button.clicked.connect(self.delete_user) 
 
