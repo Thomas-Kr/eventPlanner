@@ -1,6 +1,6 @@
-# Event Planner.
+# Event Planner
 Events Planner is a program for school workers where they can plan all school activities.
-## Installation.
+## Installation
 
 1. Download Python 3.12.1 .
 2. Download all the files from this repository and place them in the same directory.
@@ -16,7 +16,7 @@ pip install pyodbc
 python event_planner.py
 ```
 
-## Usage.
+## Usage
 1. When the program is launched, “Sign In” window will be opened, you need to enter your username and password. When the data is entered, press Enter.
 
 On the "Main" tab you can create a new event. In order to do it: 
